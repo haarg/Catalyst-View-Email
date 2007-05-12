@@ -1,0 +1,7 @@
+lib/Catalyst/Helper/View/Email.pm
+lib/Catalyst/Helper/View/Email/Template.pm
+lib/Catalyst/View/Email.pm
+lib/Catalyst/View/Email/Template.pm
+Makefile.PL
+MANIFEST			This list of files
+META.yml
