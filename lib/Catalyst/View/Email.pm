@@ -3,6 +3,7 @@ package Catalyst::View::Email;
 use warnings;
 use strict;
 
+use Class::C3;
 use Carp;
 
 use Email::Send;
