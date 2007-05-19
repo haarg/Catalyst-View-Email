@@ -32,9 +32,11 @@ In your app configuration (example in L<YAML>):
         content_type: text/plain 
         sender:
             method:     SMTP
-            host:       smtp.myhost.com
-            username:   username
-            password:   password
+            # mailer_args is passed directly into Email::Send 
+            mailer_args:
+                - Host:       smtp.example.com
+                - username:   username
+                - password:   password
 
 =cut
 
@@ -49,8 +51,8 @@ In your controller, simply forward to the view after populating the C<stash_key>
     sub controller : Private {
         my ( $self, $c ) = @_;
         $c->stash->{email} = {
-            to      => qq{catalyst@rocksyoursocks.com},
-            from    => qq{no-reply@socksthatarerocked.com},
+            to      => q{catalyst@rocksyoursocks.com},
+            from    => q{no-reply@socksthatarerocked.com},
             subject => qq{Your Subject Here},
             body    => qq{Body Body Body}
         };
@@ -122,9 +124,8 @@ sub new {
         }
     }
 
-    if ( $mailer->mailer eq 'SMTP' ) {
-        my $host = $self->config->{sender}->{host} || 'localhost';
-        $mailer->mailer_args([ Host => $host ]);
+    if ( $self->config->{sender}->{mailer_args} ) {
+        $mailer->mailer_args($self->config->{sender}->{mailer_args});
     }
 
     $self->mailer($mailer);
