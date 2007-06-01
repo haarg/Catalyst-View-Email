@@ -15,8 +15,8 @@ sub email : Global('email') {
     my $time = $c->req->params->{time} || time;
 
     $c->stash->{email} = {
-        to      => 'jshirley@picturetrail.com',
-        from    => 'no-reply@toeat.com',
+        to      => 'test-email@example.com',
+        from    => 'no-reply@example.com',
         subject => 'Email Test',
         body    => "Email Sent at: $time"
     };
@@ -37,8 +37,8 @@ sub template_email : Global('template_email') {
     $c->stash->{time} = $c->req->params->{time} || time;
 
     $c->stash->{email} = {
-        to      => 'jshirley@picturetrail.com',
-        from    => 'no-reply@toeat.com',
+        to      => 'test-email@example.com',
+        from    => 'no-reply@example.com',
         subject => 'Just a test',
         content_type => 'multipart/alternative',
         templates => [
