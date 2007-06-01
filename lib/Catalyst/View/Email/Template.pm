@@ -123,7 +123,7 @@ sub process {
             $content_type = 'text/plain';
         }
         my $output = $default_view->render( $c, $template,
-            { content_type => $content_type });
+            { content_type => $content_type, %{$c->stash} });
         # Got a ref, not a scalar.  An error!
         if ( ref $output ) {
             croak $output->can("as_string") ? $output->as_string : $output;
