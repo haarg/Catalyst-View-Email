@@ -10,5 +10,7 @@ requires 'Email::Send'          => '2.185';
 requires 'Email::MIME'          => '1.859';
 requires 'Email::MIME::Creator' => '1.453';
 
+build_requires 'Catalyst::View::TT';
+
 auto_install;
 WriteAll;
