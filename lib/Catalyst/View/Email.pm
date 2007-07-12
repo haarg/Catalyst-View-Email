@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View|;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 __PACKAGE__->mk_accessors('mailer');
 
@@ -27,6 +27,7 @@ configuration settings.
 =head1 CONFIGURATION
 
 In your app configuration (example in L<YAML>):
+
     View::Email:
         stash_key: email
         content_type: text/plain 
@@ -96,20 +97,22 @@ your forward to the view, it is a good idea to check for errors:
 
 =head1 OTHER MAILERS
 
-Now, it's no fun to just send out email using plain strings.  We also have
-L<Catalyst::View::Email::TT> for use.  You can also toggle this as being used
-by setting up your configuration to look like this:
+Now, it's no fun to just send out email using plain strings.  We also
+have L<Catalyst::View::Email::Template> for use.  You can also toggle
+this as being used by setting up your configuration to look like this:
 
     View::Email:
-        default: TT
+        default_view: TT
 
-Then, Catalyst::View::Email will forward to View::Email::TT by default.
+Then, Catalyst::View::Email will forward to your View::TT by default.
 
 =cut
 
 sub new {
-    my ( $class ) = shift;
-    my $self = $class->next::method(@_);
+    my $self = shift->next::method(@_);
+
+    my ( $c, $arguments ) = @_;
+    $self->config($arguments);
 
     my $mailer = Email::Send->new;
 
@@ -192,6 +195,12 @@ sub process {
 =head1 AUTHORS
 
 J. Shirley <jshirley@gmail.com>
+
+=head1 CONTRIBUTORS
+
+(Thanks!)
+
+Daniel Westermann-Clark
 
 =head1 LICENSE
 

@@ -6,7 +6,12 @@ use FindBin;
 
 TestApp->config(
     root => "$FindBin::Bin/root",
-    default_view => 'TT'
+    default_view => 'TT',
+    'View::Email::AppConfig' => {
+        sender => {
+            method => 'Test',
+        },
+    },
 );
 
 TestApp->setup;

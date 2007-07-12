@@ -31,6 +31,28 @@ sub email : Global('email') {
     }
 }
 
+sub email_app_config : Global('email_app_config') {
+    my ($self, $c, @args) = @_;
+
+    my $time = $c->req->params->{time} || time;
+
+    $c->stash->{email} = {
+        to      => 'test-email@example.com',
+        from    => 'no-reply@example.com',
+        subject => 'Email Test',
+        body    => "Email Sent at: $time"
+    };
+
+    $c->forward('TestApp::View::Email::AppConfig');
+
+    if ( scalar( @{ $c->error } ) ) {
+        $c->res->status(500);
+        $c->res->body('Email Failed');
+    } else {
+        $c->res->body('Plain Email Ok');
+    }
+}
+
 sub template_email : Global('template_email') {
     my ($self, $c, @args) = @_;
 

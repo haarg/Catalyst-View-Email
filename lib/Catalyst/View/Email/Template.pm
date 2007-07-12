@@ -10,7 +10,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View::Email|;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 =head1 NAME
 
@@ -149,6 +149,7 @@ sub process {
 
 There needs to be a method to support attachments.  What I am thinking is
 something along these lines:
+
     attachments => [
         # Set the body to a file handle object, specify content_type and
         # the file name. (name is what it is sent at, not the file)
