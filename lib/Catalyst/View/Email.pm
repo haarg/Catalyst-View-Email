@@ -13,7 +13,7 @@ use base qw|Catalyst::View|;
 
 our $VERSION = '0.02';
 
-__PACKAGE__->mk_accessors('mailer');
+__PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
 
 =head1 NAME
 
@@ -112,11 +112,10 @@ sub new {
     my $self = shift->next::method(@_);
 
     my ( $c, $arguments ) = @_;
-    $self->config($arguments);
 
     my $mailer = Email::Send->new;
 
-    if ( my $method = $self->config->{sender}->{method} ) {
+    if ( my $method = $self->sender->{method} ) {
         croak "$method is not supported, see Email::Send"
             unless $mailer->mailer_available($method);
         $mailer->mailer($method);
@@ -127,8 +126,8 @@ sub new {
         }
     }
 
-    if ( $self->config->{sender}->{mailer_args} ) {
-        $mailer->mailer_args($self->config->{sender}->{mailer_args});
+    if ( $self->sender->{mailer_args} ) {
+        $mailer->mailer_args($self->sender->{mailer_args});
     }
 
     $self->mailer($mailer);
@@ -142,12 +141,12 @@ sub process {
     croak "Unable to send mail, bad mail configuration"
         unless $self->mailer;
 
-    my $email  = $c->stash->{$self->config->{stash_key}};
+    my $email  = $c->stash->{$self->stash_key};
     croak "Can't send email without a valid email structure"
         unless $email;
     
-    if ( $self->config->{content_type} ) {
-        $email->{content_type} ||= $self->config->{content_type};
+    if ( $self->content_type ) {
+        $email->{content_type} ||= $self->content_type;
     }
 
     my $header  = $email->{header} || [];
