@@ -20,6 +20,7 @@ t/01use.t
 t/02pod.t
 t/04basic.t
 t/05template.t
+t/06config.t
 t/lib/TestApp.pm
 t/lib/TestApp/Controller/Root.pm
 t/lib/TestApp/View/Email.pm
