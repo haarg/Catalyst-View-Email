@@ -1,3 +1,4 @@
+Changes
 inc/Module/AutoInstall.pm
 inc/Module/Install.pm
 inc/Module/Install/AutoInstall.pm
@@ -24,6 +25,7 @@ t/06config.t
 t/lib/TestApp.pm
 t/lib/TestApp/Controller/Root.pm
 t/lib/TestApp/View/Email.pm
+t/lib/TestApp/View/Email/AppConfig.pm
 t/lib/TestApp/View/Email/Template.pm
 t/lib/TestApp/View/TT.pm
 t/root/text_html/test.tt
