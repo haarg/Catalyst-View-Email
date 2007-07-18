@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View|;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 __PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
 
