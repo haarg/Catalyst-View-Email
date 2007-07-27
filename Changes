@@ -1,0 +1,14 @@
+Revision history for Perl extension Catalyst::View::Email.
+
+0.04
+        - Fixing MANIFEST, distribution
+
+0.03
+        - Improved handling of configuration, thanks to mst.
+
+0.02
+        - Allow configuration from application or ConfigLoader
+        - Minor POD updates
+
+0.01  2007-06-03
+        - Initial release
