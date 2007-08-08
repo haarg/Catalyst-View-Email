@@ -56,6 +56,21 @@ Sending email is just setting up your stash key, and forwarding to the view.
     };
     $c->forward('View::Email::Template');
 
+Alternatively if you want more control over your templates you can use the following idiom :-
+
+    templates => [
+		{ 	view => 'HTML', 
+			template => 'email/test.html.tt',
+			content_type => 'text/html'
+		},
+		{ 	view => 'Text', 
+			template => 'email/test.plain.tt',
+			content_type => 'text/plain'
+		}
+
+    ]
+
+
 If it fails $c->error will have the error message.
 
 =cut
@@ -87,16 +102,16 @@ sub process {
     croak "No template specified for rendering"
         unless $c->stash->{$stash_key}->{template} or
                 $c->stash->{$stash_key}->{templates};
-
     # Where to look
     my $template_prefix = $self->config->{template_prefix};
     my @templates = ();
-    if ( $c->stash->{$stash_key}->{templates} ) {
+
+    if ( $c->stash->{$stash_key}->{templates} && !ref $c->stash->{$stash_key}->{templates}[0]) {
         push @templates, map {
             join('/', $template_prefix, $_);
         } @{$c->stash->{$stash_key}->{templates}};
 
-    } else {
+    } elsif($c->stash->{$stash_key}->{template}) {
         push @templates, join('/', $template_prefix,
             $c->stash->{$stash_key}->{template});
     }
@@ -135,6 +150,34 @@ sub process {
             body => $output
         );
     }
+
+	#add user parts :-
+	if ( $c->stash->{$stash_key}->{'templates'} && ref $c->stash->{$stash_key}->{templates}[0] ) {
+		foreach my $part (@{$c->stash->{$stash_key}->{'templates'}}) {
+			my $view = $c->view($part->{'view'} || $self->config->{default_view});
+
+		    my $content_type = $part->{'content_type'} || 'text/plain';
+			unless ( $view->can('render') ) {
+		        croak "Part does not have valid render view";
+		    }
+
+	        my $output = $view->render( $c, $part->{'template'}, { 
+				'content_type' => $content_type, 
+				%{$c->stash} });
+				
+	        if ( ref $output ) {
+	            croak $output->can("as_string") ? $output->as_string : $output;
+	        }
+	
+	        push @parts, Email::MIME->create(
+	            attributes => {
+	                content_type => $content_type
+	            },
+	            body => $output
+	        );
+		}
+	}
+
     delete $c->stash->{email}->{body};
     $c->stash->{email}->{parts} ||= [];
     push @{$c->stash->{email}->{parts}}, @parts;
@@ -171,6 +214,8 @@ something along these lines:
 =head1 AUTHORS
 
 J. Shirley <jshirley@gmail.com>
+
+Simon Elliott <cpan@browsing.co.uk>
 
 =head1 LICENSE
 
