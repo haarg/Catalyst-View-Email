@@ -10,7 +10,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View::Email|;
 
-our $VERSION = '0.02';
+our $VERSION = '0.03';
 
 =head1 NAME
 

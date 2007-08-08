@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View|;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 __PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
 
@@ -35,9 +35,15 @@ In your app configuration (example in L<YAML>):
             method:     SMTP
             # mailer_args is passed directly into Email::Send 
             mailer_args:
-                - Host:       smtp.example.com
-                - username:   username
-                - password:   password
+                Host:       smtp.example.com # defaults to localhost
+                username:   username
+                password:   password
+
+=head2 NOTE ON SMTP
+
+If you use SMTP and don't specify Host, it will default to localhost and
+attempt delivery.  This often times means an email will sit in a queue
+somewhere and not be delivered.
 
 =cut
 
@@ -126,8 +132,15 @@ sub new {
         }
     }
 
-    if ( $self->sender->{mailer_args} ) {
-        $mailer->mailer_args($self->sender->{mailer_args});
+    if ( my $args = $self->sender->{mailer_args} ) {
+        if ( ref $args eq 'HASH' ) {
+            $mailer->mailer_args([ %$args ]);
+        }
+        elsif ( ref $args eq 'ARRAY' ) {
+            $mailer->mailer_args($args);
+        } else {
+            croak "Invalid mailer_args specified, check pod for Email::Send!";
+        }
     }
 
     $self->mailer($mailer);
@@ -202,6 +215,8 @@ J. Shirley <jshirley@gmail.com>
 Matt S Trout
 
 Daniel Westermann-Clark
+
+Simon Elliott <cpan@browsing.co.uk> - ::Template
 
 =head1 LICENSE
 
