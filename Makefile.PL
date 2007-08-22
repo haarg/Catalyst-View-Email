@@ -10,7 +10,13 @@ requires 'Email::Send'          => '2.185';
 requires 'Email::MIME'          => '1.859';
 requires 'Email::MIME::Creator' => '1.453';
 
-build_requires 'Catalyst::View::TT';
+feature 'Template Toolkit Support',
+    -default => 1,
+    'Catalyst::View::TT' => 0;
+
+feature 'Mason Support',
+    -default => 0,
+    'Catalyst::View::Mason';
 
 auto_install;
 WriteAll;

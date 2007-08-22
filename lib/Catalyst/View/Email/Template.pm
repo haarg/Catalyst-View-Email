@@ -10,7 +10,9 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View::Email|;
 
-our $VERSION = '0.03';
+our $VERSION = '0.06';
+
+__PACKAGE__->mk_accessors( qw(default_view template_prefix) );
 
 =head1 NAME
 
@@ -97,13 +99,13 @@ __PACKAGE__->config(
 sub process {
     my ( $self, $c ) = @_;
 
-    my $stash_key       = $self->config->{stash_key} || 'email';
+    my $stash_key = $self->stash_key || 'email';
 
     croak "No template specified for rendering"
         unless $c->stash->{$stash_key}->{template} or
                 $c->stash->{$stash_key}->{templates};
     # Where to look
-    my $template_prefix = $self->config->{template_prefix};
+    my $template_prefix = $self->template_prefix;
     my @templates = ();
 
     if ( $c->stash->{$stash_key}->{templates} && !ref $c->stash->{$stash_key}->{templates}[0]) {
@@ -116,7 +118,7 @@ sub process {
             $c->stash->{$stash_key}->{template});
     }
    
-    my $default_view = $c->view( $self->config->{default_view} );
+    my $default_view = $c->view( $self->default_view );
 
     unless ( $default_view->can('render') ) {
         croak "Email::Template's configured view does not have a render method!";
@@ -137,8 +139,13 @@ sub process {
         } else {
             $content_type = 'text/plain';
         }
-        my $output = $default_view->render( $c, $template,
-            { content_type => $content_type, %{$c->stash} });
+
+        my $output = $default_view->render( $c, $template, {
+            content_type => $content_type,
+            stash_key => $self->stash_key,
+            %{$c->stash},
+        });
+
         # Got a ref, not a scalar.  An error!
         if ( ref $output ) {
             croak $output->can("as_string") ? $output->as_string : $output;
@@ -178,9 +185,9 @@ sub process {
 		}
 	}
 
-    delete $c->stash->{email}->{body};
-    $c->stash->{email}->{parts} ||= [];
-    push @{$c->stash->{email}->{parts}}, @parts;
+    delete $c->stash->{$stash_key}->{body};
+    $c->stash->{$stash_key}->{parts} ||= [];
+    push @{$c->stash->{$stash_key}->{parts}}, @parts;
 
     # Let C::V::Email do the actual sending.  We just assemble the tasty bits.
     return $self->next::method($c);

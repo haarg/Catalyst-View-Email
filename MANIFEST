@@ -22,11 +22,15 @@ t/02pod.t
 t/04basic.t
 t/05template.t
 t/06config.t
+t/07mason.t
 t/lib/TestApp.pm
 t/lib/TestApp/Controller/Root.pm
 t/lib/TestApp/View/Email.pm
 t/lib/TestApp/View/Email/AppConfig.pm
 t/lib/TestApp/View/Email/Template.pm
+t/lib/TestApp/View/Mason.pm
 t/lib/TestApp/View/TT.pm
+t/root/text_html/test.m
 t/root/text_html/test.tt
+t/root/text_plain/test.m
 t/root/text_plain/test.tt

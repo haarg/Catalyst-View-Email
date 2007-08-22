@@ -12,6 +12,12 @@ TestApp->config(
             method => 'Test',
         },
     },
+    'View::Email::Template::AppConfig' => {
+        stash_key => 'template_email',
+        sender => {
+            method => 'Test',
+        },
+    },
 );
 
 TestApp->setup;

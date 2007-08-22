@@ -6,20 +6,22 @@ use Email::Send::Test;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-eval "use Catalyst::View::TT";
+eval "use Catalyst::View::Mason";
 if ( $@ ) {
-    plan skip_all => 'Catalyst::View::TT required for Template tests';
+    plan skip_all => 'Catalyst::View::Mason required for Mason tests';
     exit;
 }
 plan tests => 10;
 
 use_ok('Catalyst::Test', 'TestApp');
 
+TestApp->config->{default_view} = 'mason';
+
 my $response;
 my $time = time;
-ok( ( $response = request("/template_email?time=$time"))->is_success,
+ok( ( $response = request("/mason_email?time=$time"))->is_success,
     'request ok' );
-like( $response->content, qr/Template Email Ok/, 'controller says ok' );
+like( $response->content, qr/Mason Email Ok/, 'controller says ok' );
 my @emails = Email::Send::Test->emails;
 
 cmp_ok(@emails, '==', 1, 'got emails');

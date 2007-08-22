@@ -2,6 +2,6 @@ package # Hide me.
     TestApp::View::TT;
 
 use strict;
-use base 'Catalyst::View::TT';
+eval "use base 'Catalyst::View::TT';";
 
 1;
