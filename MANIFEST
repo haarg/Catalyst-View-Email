@@ -28,6 +28,7 @@ t/lib/TestApp/Controller/Root.pm
 t/lib/TestApp/View/Email.pm
 t/lib/TestApp/View/Email/AppConfig.pm
 t/lib/TestApp/View/Email/Template.pm
+t/lib/TestApp/View/Email/Template/AppConfig.pm
 t/lib/TestApp/View/Mason.pm
 t/lib/TestApp/View/TT.pm
 t/root/text_html/test.m
