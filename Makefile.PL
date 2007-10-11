@@ -18,5 +18,11 @@ feature 'Mason Support',
     -default => 0,
     'Catalyst::View::Mason';
 
+feature 'Net::SMTP Support',
+    -default => 0,
+    'MIME::Base64',
+    'Authen::SASL';
+
+
 auto_install;
 WriteAll;

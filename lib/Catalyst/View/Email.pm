@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View|;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 __PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
 
@@ -190,7 +190,8 @@ sub process {
     my $message = Email::MIME->create(%mime);
 
     if ( $message ) {
-        $self->mailer->send($message);
+        my $return = $self->mailer->send($message);
+        croak "$return" if !$return;
     } else {
         croak "Unable to create message";
     }
@@ -217,6 +218,8 @@ Matt S Trout
 Daniel Westermann-Clark
 
 Simon Elliott <cpan@browsing.co.uk> - ::Template
+
+Roman Filippov
 
 =head1 LICENSE
 
