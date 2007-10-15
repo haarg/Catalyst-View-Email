@@ -10,7 +10,7 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View::Email|;
 
-our $VERSION = '0.06';
+our $VERSION = '0.08';
 
 __PACKAGE__->mk_accessors( qw(default_view template_prefix) );
 
