@@ -1,5 +1,7 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.07    - refactored by Alexander Hartmaier with slight api changes
+
 0.06
         - Fixing some slight issues with configuration not being handled
           appropriately (thanks dwc and mst)

@@ -11,9 +11,10 @@ use Email::MIME::Creator;
 
 use base qw|Catalyst::View|;
 
-our $VERSION = '0.08';
+our $VERSION = '0.07';
 
-__PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
+#__PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
+__PACKAGE__->mk_accessors(qw(stash_key content_type mailer));
 
 =head1 NAME
 
@@ -32,7 +33,7 @@ In your app configuration (example in L<YAML>):
         stash_key: email
         content_type: text/plain 
         sender:
-            method:     SMTP
+            mailer: SMTP
             # mailer_args is passed directly into Email::Send 
             mailer_args:
                 Host:       smtp.example.com # defaults to localhost
@@ -48,7 +49,10 @@ somewhere and not be delivered.
 =cut
 
 __PACKAGE__->config(
-    stash_key => 'email',
+    stash_key   => 'email',
+    default     => {
+        content_type    => 'text/html',
+    },
 );
 
 =head1 SENDING EMAIL
@@ -108,7 +112,8 @@ have L<Catalyst::View::Email::Template> for use.  You can also toggle
 this as being used by setting up your configuration to look like this:
 
     View::Email:
-        default_view: TT
+        default:
+            view: TT
 
 Then, Catalyst::View::Email will forward to your View::TT by default.
 
@@ -119,31 +124,31 @@ sub new {
 
     my ( $c, $arguments ) = @_;
 
-    my $mailer = Email::Send->new;
+    my $sender = Email::Send->new;
 
-    if ( my $method = $self->sender->{method} ) {
-        croak "$method is not supported, see Email::Send"
-            unless $mailer->mailer_available($method);
-        $mailer->mailer($method);
+    if ( my $mailer = $self->{sender}->{mailer} ) {
+        croak "$mailer is not supported, see Email::Send"
+            unless $sender->mailer_available($mailer);
+        $sender->mailer($mailer);
     } else {
         # Default case, run through the most likely options first.
         for ( qw/SMTP Sendmail Qmail/ ) {
-            $mailer->mailer($_) and last if $mailer->mailer_available($_);
+            $sender->mailer($_) and last if $sender->mailer_available($_);
         }
     }
 
-    if ( my $args = $self->sender->{mailer_args} ) {
+    if ( my $args = $self->{sender}->{mailer_args} ) {
         if ( ref $args eq 'HASH' ) {
-            $mailer->mailer_args([ %$args ]);
+            $sender->mailer_args([ %$args ]);
         }
         elsif ( ref $args eq 'ARRAY' ) {
-            $mailer->mailer_args($args);
+            $sender->mailer_args($args);
         } else {
             croak "Invalid mailer_args specified, check pod for Email::Send!";
         }
     }
 
-    $self->mailer($mailer);
+    $self->mailer($sender);
 
     return $self;
 }

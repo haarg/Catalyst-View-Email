@@ -7,7 +7,7 @@ use base 'Catalyst::View::Email';
 
 __PACKAGE__->config(
     sender => {
-        method => 'Test'
+        mailer => 'Test'
     },
 );
 

@@ -6,16 +6,18 @@ use FindBin;
 
 TestApp->config(
     root => "$FindBin::Bin/root",
-    default_view => 'TT',
     'View::Email::AppConfig' => {
         sender => {
-            method => 'Test',
+            mailer => 'Test',
         },
     },
     'View::Email::Template::AppConfig' => {
         stash_key => 'template_email',
         sender => {
-            method => 'Test',
+            mailer => 'Test',
+        },
+        default => {
+            view => 'TT',
         },
     },
 );
