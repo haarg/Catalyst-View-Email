@@ -61,11 +61,11 @@ Sending email is just setting up your stash key, and forwarding to the view.
 Alternatively if you want more control over your templates you can use the following idiom :-
 
     templates => [
-		{ 	view => 'HTML', 
+		{ 	view => 'TT', 
 			template => 'email/test.html.tt',
 			content_type => 'text/html'
 		},
-		{ 	view => 'Text', 
+		{ 	view => 'TT', 
 			template => 'email/test.plain.tt',
 			content_type => 'text/plain'
 		}
