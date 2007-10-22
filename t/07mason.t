@@ -15,7 +15,7 @@ plan tests => 10;
 
 use_ok('Catalyst::Test', 'TestApp');
 
-TestApp->config->{default}->{view} = 'mason';
+TestApp->config->{default_view} = 'Mason';
 
 my $response;
 my $time = time;

@@ -165,7 +165,7 @@ sub _generate_part {
     # else fallback to Catalysts default view
     else {
         $view = $c->view;
-        $c->log->debug("C::V::Email::Template uses back to catalysts default view $view for rendering.") if $c->debug;;
+        $c->log->debug("C::V::Email::Template uses Catalysts default view $view for rendering.") if $c->debug;;
     }
 
     # validate the per template view
