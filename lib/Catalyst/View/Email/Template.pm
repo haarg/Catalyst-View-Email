@@ -5,13 +5,13 @@ use strict;
 
 use Class::C3;
 use Carp;
-use Scalar::Util qw( blessed );
+use Scalar::Util qw/ blessed /;
 
 use Email::MIME::Creator;
 
-use base qw|Catalyst::View::Email|;
+use base qw/ Catalyst::View::Email /;
 
-our $VERSION = '0.07';
+our $VERSION = '0.09999_01';
 
 =head1 NAME
 
@@ -19,35 +19,48 @@ Catalyst::View::Email::Template - Send Templated Email from Catalyst
 
 =head1 SYNOPSIS
 
-Sends Templated mail, based upon your Default View.  Will capture the output
+Sends Templated mail, based upon your default view. It captures the output
 of the rendering path, slurps in based on mime-types and assembles a multi-part
-email and sends it out.
-It uses Email::MIME to create the mail.
+email using Email::MIME::Creator and sends it out.
 
-=head2 CONFIGURATION
+=head1 CONFIGURATION
+
+Use the helper to create your View:
+    
+    $ script/myapp_create.pl view Email::Template Email::Template
+
+In your app configuration (example in L<YAML>):
 
     View::Email::Template:
         # Optional prefix to look somewhere under the existing configured
-        # template  paths. Default is none.
+        # template  paths.
+        # Default: none
         template_prefix: email
         # Where to look in the stash for the email information.
-        # 'email' is the default, so you don't have to specify it.
+        # Default: email
         stash_key: email
         # Define the defaults for the mail
         default:
-            # Defines the default content type (mime type) for every template.
+            # Defines the default content type (mime type).
+            # Mandatory
             content_type: text/html
             # Defines the default charset for every MIME part with the content
-            # type 'text'.
-            # According to RFC2049 such a MIME part without a charset should
+            # type text.
+            # According to RFC2049 a MIME part without a charset should
             # be treated as US-ASCII by the mail client.
             # If the charset is not set it won't be set for all MIME parts
             # without an overridden one.
+            # Default: none
             charset: utf-8
-            # Defines the default view which is used to render the templates.
+            # Defines the default view used to render the templates.
+            # If none is specified neither here nor in the stash
+            # Catalysts default view is used.
+            # Warning: if you don't tell Catalyst explicit which of your views should
+            # be its default one, C::V::Email::Template may choose the wrong one!
             view: TT
         # Setup how to send the email
-        # all those options are passed directly to Email::Send
+        # All those options are passed directly to Email::Send,
+        # for all available options look at its docs.
         sender:
             mailer: SMTP
             mailer_args:
@@ -74,11 +87,13 @@ to override the defaults:
         {
             template        => 'email/test.html.tt',
             content_type    => 'text/html',
+            charset         => 'utf-8',
             view            => 'TT', 
         },
         {
             template        => 'email/test.plain.mason',
             content_type    => 'text/plain',
+            charset         => 'utf-8',
             view            => 'Mason', 
         }
     ]
@@ -132,21 +147,51 @@ sub _generate_part {
     my $template_prefix         = $self->{template_prefix};
     my $default_view            = $self->{default}->{view};
     my $default_content_type    = $self->{default}->{content_type};
+    my $default_charset         = $self->{default}->{charset};
 
-    my $view = $c->view($attrs->{view} || $default_view);
+    my $e_m_attrs = {};
+
+    my $view;
+    # use the view specified for the email part
+    if (exists $attrs->{view} && defined $attrs->{view} && $attrs->{view} ne '') {
+        $view = $c->view($attrs->{view});
+        $c->log->debug("C::V::Email::Template uses specified view $view for rendering.") if $c->debug;
+    }
+    # if none specified use the configured default view
+    elsif ($default_view) {
+        $view = $c->view($default_view);
+        $c->log->debug("C::V::Email::Template uses default view $view for rendering.") if $c->debug;;
+    }
+    # else fallback to Catalysts default view
+    else {
+        $view = $c->view;
+        $c->log->debug("C::V::Email::Template uses back to catalysts default view $view for rendering.") if $c->debug;;
+    }
+
     # validate the per template view
     $self->_validate_view($view);
-#    $c->log->debug("VIEW: $view");
     
     # prefix with template_prefix if configured
     my $template = $template_prefix ne '' ? join('/', $template_prefix, $attrs->{template}) : $attrs->{template};
-            
-    my $content_type = $attrs->{content_type} || $default_content_type;
     
+    if (exists $attrs->{content_type} && defined $attrs->{content_type} && $attrs->{content_type} ne '') {
+        $e_m_attrs->{content_type} = $attrs->{content_type};
+    }
+    elsif (defined $default_content_type && $default_content_type ne '') {
+        $e_m_attrs->{content_type} = $default_content_type;
+    }
+   
+    if (exists $attrs->{charset} && defined $attrs->{charset} && $attrs->{charset} ne '') {
+        $e_m_attrs->{charset} = $attrs->{charset};
+    }
+    elsif (defined $default_charset && $default_charset ne '') {
+        $e_m_attrs->{charset} = $default_charset;
+    }
+
     # render the email part
     my $output = $view->render( $c, $template, { 
-        content_type    => "$content_type",
-        stash_key       => $self->stash_key,
+        content_type    => $e_m_attrs->{content_type},
+        stash_key       => $self->{stash_key},
 	%{$c->stash},
     });
 				
@@ -155,9 +200,7 @@ sub _generate_part {
     }
 	
     return Email::MIME->create(
-        attributes => {
-	    content_type => "$content_type",
-	},
+        attributes => $e_m_attrs,
 	body => $output,
     );
 }
@@ -165,21 +208,13 @@ sub _generate_part {
 sub process {
     my ( $self, $c ) = @_;
 
-    # validate here so _generate_part doesn't have to do it for every part
-    my $stash_key = $self->{stash_key};
-    croak "Email::Template's stash_key isn't defined!"
-        if ($stash_key eq '');
-    
     # don't validate template_prefix
 
-    # the default view is validated on use later anyways...
-    # but just to be sure even if not used
-#    $self->_validate_view($c->view($self->{default}->{view}));
-
-#    $c->log->debug("SELF: $self");
-#    $c->log->debug('DEFAULT VIEW: ' . $self->{default}->{view});
+    # the default view is validated if used
 
     # the content type should be validated by Email::MIME::Creator
+    
+    my $stash_key = $self->{stash_key};
 
     croak "No template specified for rendering"
         unless $c->stash->{$stash_key}->{template}
@@ -202,6 +237,7 @@ sub process {
                 view            => $part->{view},
                 template        => $part->{template},
                 content_type    => $part->{content_type},
+                charset         => $part->{charset},
             });
 	}
     }

@@ -9,12 +9,11 @@ use Carp;
 use Email::Send;
 use Email::MIME::Creator;
 
-use base qw|Catalyst::View|;
+use base qw/ Catalyst::View /;
 
-our $VERSION = '0.07';
+our $VERSION = '0.09999_01';
 
-#__PACKAGE__->mk_accessors(qw(sender stash_key content_type mailer));
-__PACKAGE__->mk_accessors(qw(stash_key content_type mailer));
+__PACKAGE__->mk_accessors(qw/ mailer /);
 
 =head1 NAME
 
@@ -27,11 +26,23 @@ configuration settings.
 
 =head1 CONFIGURATION
 
+Use the helper to create your View:
+    
+    $ script/myapp_create.pl view Email Email
+
 In your app configuration (example in L<YAML>):
 
     View::Email:
+        # Where to look in the stash for the email information.
+        # 'email' is the default, so you don't have to specify it.
         stash_key: email
-        content_type: text/plain 
+        # Define the defaults for the mail
+        default:
+            # Defines the default content type (mime type).
+            # mandatory
+            content_type: text/plain
+        # Setup how to send the email
+        # all those options are passed directly to Email::Send
         sender:
             mailer: SMTP
             # mailer_args is passed directly into Email::Send 
@@ -63,6 +74,8 @@ In your controller, simply forward to the view after populating the C<stash_key>
         my ( $self, $c ) = @_;
         $c->stash->{email} = {
             to      => q{catalyst@rocksyoursocks.com},
+            cc      => q{foo@bar.com},
+            bcc     => q{hidden@secret.com},
             from    => q{no-reply@socksthatarerocked.com},
             subject => qq{Your Subject Here},
             body    => qq{Body Body Body}
@@ -105,17 +118,12 @@ your forward to the view, it is a good idea to check for errors:
         $c->res->body('Email sent A-OK! (At least as far as we can tell)');
     }
 
-=head1 OTHER MAILERS
+=head1 USING TEMPLATES FOR EMAIL
 
-Now, it's no fun to just send out email using plain strings.  We also
-have L<Catalyst::View::Email::Template> for use.  You can also toggle
-this as being used by setting up your configuration to look like this:
+Now, it's no fun to just send out email using plain strings.
+Take a look at L<Catalyst::View::Email::Template> to see how you can use your
+favourite template engine to render the mail body.
 
-    View::Email:
-        default:
-            view: TT
-
-Then, Catalyst::View::Email will forward to your View::TT by default.
 
 =cut
 
@@ -123,6 +131,10 @@ sub new {
     my $self = shift->next::method(@_);
 
     my ( $c, $arguments ) = @_;
+    
+    my $stash_key = $self->{stash_key};
+    croak "$self stash_key isn't defined!"
+        if ($stash_key eq '');
 
     my $sender = Email::Send->new;
 
@@ -159,17 +171,21 @@ sub process {
     croak "Unable to send mail, bad mail configuration"
         unless $self->mailer;
 
-    my $email  = $c->stash->{$self->stash_key};
+    my $email  = $c->stash->{$self->{stash_key}};
     croak "Can't send email without a valid email structure"
         unless $email;
     
-    if ( $self->content_type ) {
-        $email->{content_type} ||= $self->content_type;
+    if ( exists $self->{content_type} ) {
+        $email->{content_type} ||= $self->{content_type};
     }
 
     my $header  = $email->{header} || [];
         push @$header, ('To' => delete $email->{to})
             if $email->{to};
+        push @$header, ('Cc' => delete $email->{cc})
+            if $email->{cc};
+        push @$header, ('Bcc' => delete $email->{bcc})
+            if $email->{bcc};
         push @$header, ('From' => delete $email->{from})
             if $email->{from};
         push @$header, ('Subject' => delete $email->{subject})
@@ -222,9 +238,11 @@ Matt S Trout
 
 Daniel Westermann-Clark
 
-Simon Elliott <cpan@browsing.co.uk> - ::Template
+Simon Elliott <cpan@browsing.co.uk>
 
 Roman Filippov
+
+Alexander Hartmaier <alex_hartmaier@hotmail.com>
 
 =head1 LICENSE
 

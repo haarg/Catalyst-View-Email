@@ -5,7 +5,8 @@ use Catalyst;
 use FindBin;
 
 TestApp->config(
-    root => "$FindBin::Bin/root",
+    root            => "$FindBin::Bin/root",
+    default_view    => 'TT',
     'View::Email::AppConfig' => {
         sender => {
             mailer => 'Test',

@@ -8,7 +8,7 @@ Catalyst::Helper::View::Email - Helper for Email Views
 
 =head1 SYNOPSIS
 
-    script/create.pl view Email Email
+    $ script/myapp_create.pl view Email Email
 
 =head1 DESCRIPTION
 

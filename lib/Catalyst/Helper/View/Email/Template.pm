@@ -8,7 +8,7 @@ Catalyst::Helper::View::Email::Template - Helper for Templated Email Views
 
 =head1 SYNOPSIS
 
-    script/create.pl view Email::Template Email::Template
+    $ script/myapp_create.pl view Email::Template Email::Template
 
 =head1 DESCRIPTION
 

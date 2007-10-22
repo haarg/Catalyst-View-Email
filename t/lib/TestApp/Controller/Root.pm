@@ -62,10 +62,8 @@ sub template_email : Global('template_email') {
         to      => 'test-email@example.com',
         from    => 'no-reply@example.com',
         subject => 'Just a test',
-#        content_type => 'multipart/alternative',
         templates => [
             {
-                view            => 'TT',
                 template        => 'text_plain/test.tt',
                 content_type    => 'text/plain',
             },
@@ -96,13 +94,13 @@ sub template_email_app_config : Global('template_email_app_config') {
         to      => 'test-email@example.com',
         from    => 'no-reply@example.com',
         subject => 'Just a test',
-#        content_type => 'multipart/alternative',
         templates => [
             {
                 template        => 'text_plain/test.tt',
                 content_type    => 'text/plain',
             },
             {
+                view            => 'TT',
                 template        => 'text_html/test.tt',
                 content_type    => 'text/html',
             },
@@ -128,13 +126,13 @@ sub mason_email : Global('mason_email') {
         to      => 'test-email@example.com',
         from    => 'no-reply@example.com',
         subject => 'Just a test',
-        content_type => 'multipart/alternative',
         templates => [
             {
                 template        => 'text_plain/test.tt',
                 content_type    => 'text/plain',
             },
             {
+                view            => 'Mason',
                 template        => 'text_html/test.tt',
                 content_type    => 'text/html',
             },
