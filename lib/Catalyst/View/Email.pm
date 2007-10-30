@@ -222,7 +222,7 @@ sub process {
         $mime{attributes}->{charset} = $self->{default}->{charset};
     }
 
-    my $message = $self->generate_part( \%mime );
+    my $message = $self->generate_part( $c, \%mime );
 
     #my $message = Email::MIME->create(%mime);
 
@@ -260,8 +260,9 @@ sub setup_attributes {
 }
 
 sub generate_part {
-    my ( $self, $attr ) = @_;
+    my ( $self, $c, $attr ) = @_;
 
+$c->log->info("generate_part in Email");    
     # setup the attributes (merge with defaults)
     $attr->{attributes} = $self->setup_attributes($attr->{attributes});
     return Email::MIME->create(%$attr);
