@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View::Email /;
 
-our $VERSION = '0.09999_01';
+our $VERSION = '0.09999_02';
 
 =head1 NAME
 
@@ -143,7 +143,7 @@ sub _validate_view {
 
 sub generate_part {
     my ($self, $c, $attrs) = @_;
-    
+
     my $template_prefix         = $self->{template_prefix};
     my $default_view            = $self->{default}->{view};
     my $default_content_type    = $self->{default}->{content_type};
@@ -173,7 +173,7 @@ sub generate_part {
     my $template = $template_prefix ne '' ? join('/', $template_prefix, $attrs->{template}) : $attrs->{template};
    
     # setup the attributes (merge with defaults)
-    my $e_m_attrs = $self->setup_attributes($attrs);
+    my $e_m_attrs = $self->setup_attributes($c, $attrs);
 
     # render the email part
     my $output = $view->render( $c, $template, { 

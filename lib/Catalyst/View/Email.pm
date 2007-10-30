@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View /;
 
-our $VERSION = '0.09999_01';
+our $VERSION = '0.09999_02';
 
 __PACKAGE__->mk_accessors(qw/ mailer /);
 
@@ -182,7 +182,7 @@ sub process {
     my $email  = $c->stash->{$self->{stash_key}};
     croak "Can't send email without a valid email structure"
         unless $email;
-    
+
     if ( exists $self->{content_type} ) {
         $email->{content_type} ||= $self->{content_type};
     }
@@ -222,7 +222,7 @@ sub process {
         $mime{attributes}->{charset} = $self->{default}->{charset};
     }
 
-    my $message = $self->generate_part( $c, \%mime );
+    my $message = $self->generate_message( $c, \%mime );
 
     #my $message = Email::MIME->create(%mime);
 
@@ -243,9 +243,11 @@ sub setup_attributes {
     my $e_m_attrs = {};
 
     if (exists $attrs->{content_type} && defined $attrs->{content_type} && $attrs->{content_type} ne '') {
+        $c->log->debug('C::V::Email uses specified content_type ' . $attrs->{content_type} . '.') if $c->debug;
         $e_m_attrs->{content_type} = $attrs->{content_type};
     }
     elsif (defined $default_content_type && $default_content_type ne '') {
+        $c->log->debug("C::V::Email uses default content_type $default_content_type.") if $c->debug;
         $e_m_attrs->{content_type} = $default_content_type;
     }
    
@@ -259,12 +261,11 @@ sub setup_attributes {
     return $e_m_attrs;
 }
 
-sub generate_part {
+sub generate_message {
     my ( $self, $c, $attr ) = @_;
 
-$c->log->info("generate_part in Email");    
     # setup the attributes (merge with defaults)
-    $attr->{attributes} = $self->setup_attributes($attr->{attributes});
+    $attr->{attributes} = $self->setup_attributes($c, $attr->{attributes});
     return Email::MIME->create(%$attr);
 }
 

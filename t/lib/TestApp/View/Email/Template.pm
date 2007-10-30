@@ -9,7 +9,7 @@ __PACKAGE__->config(
         mailer => 'Test'
     },
     stash_key       => 'email',
-    template_prefix => ''
+    template_prefix => '',
 );
 
 1;
