@@ -141,6 +141,13 @@ sub _validate_view {
         unless ($view->can('render'));
 }
 
+=head2 generate_part
+
+Generate a MIME part to include in the email.  Since the email is template based
+every template piece is a separate part that is included in the email.
+
+=cut
+
 sub generate_part {
     my ($self, $c, $attrs) = @_;
 
@@ -191,6 +198,15 @@ sub generate_part {
         body       => $output,
     );
 }
+
+=head2 process
+
+The process method is called when the view is dispatched to.  This creates the
+multipart message and then sends the message contents off to
+L<Catalyst::View::Email> for processing, which in turn hands off to 
+L<Email::Send>
+
+=cut
 
 sub process {
     my ( $self, $c ) = @_;

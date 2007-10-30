@@ -173,6 +173,15 @@ sub new {
     return $self;
 }
 
+=head2 process
+
+The process method does the actual processing when the view is dispatched to.
+
+This method sets up the email parts and hands off to L<Email::Send> to handle
+the actual email delivery.
+
+=cut
+
 sub process {
     my ( $self, $c ) = @_;
 
@@ -234,6 +243,15 @@ sub process {
     }
 }
 
+=head2 setup_attributes
+
+Merge attributes with the configured defaults.  You can override this method to
+return a structure to pass into L<generate_message> which subsequently
+passes the return value of this method to Email::MIME->create under the
+C<attributes> key.
+
+=cut
+
 sub setup_attributes {
     my ( $self, $c, $attrs ) = @_;
     
@@ -260,6 +278,15 @@ sub setup_attributes {
 
     return $e_m_attrs;
 }
+
+=head2 generate_message($c, $attr)
+
+Generate a message part, which should be an L<Email::MIME> object and return it.
+
+Takes the attributes, merges with the defaults as necessary and returns a
+message object.
+
+=cut
 
 sub generate_message {
     my ( $self, $c, $attr ) = @_;
