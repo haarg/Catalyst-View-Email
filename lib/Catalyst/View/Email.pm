@@ -41,6 +41,14 @@ In your app configuration (example in L<YAML>):
             # Defines the default content type (mime type).
             # mandatory
             content_type: text/plain
+            # Defines the default charset for every MIME part with the content
+            # type text.
+            # According to RFC2049 a MIME part without a charset should
+            # be treated as US-ASCII by the mail client.
+            # If the charset is not set it won't be set for all MIME parts
+            # without an overridden one.
+            # Default: none
+            charset: utf-8
         # Setup how to send the email
         # all those options are passed directly to Email::Send
         sender:
@@ -207,8 +215,16 @@ sub process {
     } else {
         $mime{body} = $body;
     }
+    
+    if ( $mime{attributes} and not $mime{attributes}->{charset} and
+         $self->{default}->{charset} )
+    {
+        $mime{attributes}->{charset} = $self->{default}->{charset};
+    }
 
-    my $message = Email::MIME->create(%mime);
+    my $message = $self->generate_part( \%mime );
+
+    #my $message = Email::MIME->create(%mime);
 
     if ( $message ) {
         my $return = $self->mailer->send($message);
@@ -216,6 +232,39 @@ sub process {
     } else {
         croak "Unable to create message";
     }
+}
+
+sub setup_attributes {
+    my ( $self, $c, $attrs ) = @_;
+    
+    my $default_content_type    = $self->{default}->{content_type};
+    my $default_charset         = $self->{default}->{charset};
+
+    my $e_m_attrs = {};
+
+    if (exists $attrs->{content_type} && defined $attrs->{content_type} && $attrs->{content_type} ne '') {
+        $e_m_attrs->{content_type} = $attrs->{content_type};
+    }
+    elsif (defined $default_content_type && $default_content_type ne '') {
+        $e_m_attrs->{content_type} = $default_content_type;
+    }
+   
+    if (exists $attrs->{charset} && defined $attrs->{charset} && $attrs->{charset} ne '') {
+        $e_m_attrs->{charset} = $attrs->{charset};
+    }
+    elsif (defined $default_charset && $default_charset ne '') {
+        $e_m_attrs->{charset} = $default_charset;
+    }
+
+    return $e_m_attrs;
+}
+
+sub generate_part {
+    my ( $self, $attr ) = @_;
+
+    # setup the attributes (merge with defaults)
+    $attr->{attributes} = $self->setup_attributes($attr->{attributes});
+    return Email::MIME->create(%$attr);
 }
 
 =head1 SEE ALSO

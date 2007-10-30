@@ -141,15 +141,13 @@ sub _validate_view {
         unless ($view->can('render'));
 }
 
-sub _generate_part {
+sub generate_part {
     my ($self, $c, $attrs) = @_;
     
     my $template_prefix         = $self->{template_prefix};
     my $default_view            = $self->{default}->{view};
     my $default_content_type    = $self->{default}->{content_type};
     my $default_charset         = $self->{default}->{charset};
-
-    my $e_m_attrs = {};
 
     my $view;
     # use the view specified for the email part
@@ -173,35 +171,24 @@ sub _generate_part {
     
     # prefix with template_prefix if configured
     my $template = $template_prefix ne '' ? join('/', $template_prefix, $attrs->{template}) : $attrs->{template};
-    
-    if (exists $attrs->{content_type} && defined $attrs->{content_type} && $attrs->{content_type} ne '') {
-        $e_m_attrs->{content_type} = $attrs->{content_type};
-    }
-    elsif (defined $default_content_type && $default_content_type ne '') {
-        $e_m_attrs->{content_type} = $default_content_type;
-    }
    
-    if (exists $attrs->{charset} && defined $attrs->{charset} && $attrs->{charset} ne '') {
-        $e_m_attrs->{charset} = $attrs->{charset};
-    }
-    elsif (defined $default_charset && $default_charset ne '') {
-        $e_m_attrs->{charset} = $default_charset;
-    }
+    # setup the attributes (merge with defaults)
+    my $e_m_attrs = $self->setup_attributes($attrs);
 
     # render the email part
     my $output = $view->render( $c, $template, { 
         content_type    => $e_m_attrs->{content_type},
         stash_key       => $self->{stash_key},
-	%{$c->stash},
+        %{$c->stash},
     });
-				
-    if (ref $output) {
-	croak $output->can('as_string') ? $output->as_string : $output;
+    
+    if ( ref $output ) {
+        croak $output->can('as_string') ? $output->as_string : $output;
     }
-	
+
     return Email::MIME->create(
         attributes => $e_m_attrs,
-	body => $output,
+        body       => $output,
     );
 }
 
@@ -233,17 +220,17 @@ sub process {
         && ref $c->stash->{$stash_key}->{templates}[0] eq 'HASH') {
         # loop through all parts of the mail
         foreach my $part (@{$c->stash->{$stash_key}->{templates}}) {
-            push @parts, $self->_generate_part($c, {
+            push @parts, $self->generate_part($c, {
                 view            => $part->{view},
                 template        => $part->{template},
                 content_type    => $part->{content_type},
                 charset         => $part->{charset},
             });
-	}
+        }
     }
     # single part api
     elsif($c->stash->{$stash_key}->{template}) {
-        push @parts, $self->_generate_part($c, {
+        push @parts, $self->generate_part($c, {
             template    => $c->stash->{$stash_key}->{template},
         });
     }
