@@ -88,7 +88,7 @@ In your controller, simply forward to the view after populating the C<stash_key>
             subject => qq{Your Subject Here},
             body    => qq{Body Body Body}
         };
-        $c->forward('View::Email');
+        $c->forward( $c->view('Email' ) );
     }
 
 Alternatively, you can use a more raw interface, and specify the headers as
@@ -118,7 +118,7 @@ an array reference.
 If the email fails to send, the view will die (throw an exception).  After
 your forward to the view, it is a good idea to check for errors:
     
-    $c->forward('View::Email');
+    $c->forward( $c->view('Email' ) );
     if ( scalar( @{ $c->error } ) ) {
         $c->error(0); # Reset the error condition if you need to
         $c->res->body('Oh noes!');

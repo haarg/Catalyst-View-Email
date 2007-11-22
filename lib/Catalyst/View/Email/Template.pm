@@ -78,7 +78,7 @@ Sending email is just setting up your defaults, the stash key and forwarding to 
         subject => 'I am a Catalyst generated email',
         template => 'test.tt',
     };
-    $c->forward('View::Email::Template');
+    $c->forward( $c->view('Email::Template' ) );
 
 Alternatively if you want more control over your templates you can use the following idiom
 to override the defaults:
