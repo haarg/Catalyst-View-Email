@@ -113,7 +113,7 @@ an array reference.
         ],
     };
 
-=head1 HANDLING FAILURES
+=head1 HANDLING ERRORS
 
 If the email fails to send, the view will die (throw an exception).  After
 your forward to the view, it is a good idea to check for errors:
@@ -237,6 +237,8 @@ sub process {
 
     if ( $message ) {
         my $return = $self->mailer->send($message);
+        # return is a Return::Value object, so this will stringify as the error
+        # in the case of a failure.  
         croak "$return" if !$return;
     } else {
         croak "Unable to create message";
