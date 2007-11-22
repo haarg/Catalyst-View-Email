@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View /;
 
-our $VERSION = '0.09999_02';
+our $VERSION = '0.10';
 
 __PACKAGE__->mk_accessors(qw/ mailer /);
 
@@ -21,10 +21,12 @@ Catalyst::View::Email - Send Email from Catalyst
 
 =head1 SYNOPSIS
 
-This module simply sends out email from a stash key specified in the
+This module sends out emails from a stash key specified in the
 configuration settings.
 
 =head1 CONFIGURATION
+
+WARNING: since version 0.10 the configuration options slightly changed!
 
 Use the helper to create your View:
     
@@ -59,45 +61,54 @@ In your app configuration (example in L<YAML>):
                 username:   username
                 password:   password
 
-=head2 NOTE ON SMTP
+=head1 NOTE ON SMTP
 
 If you use SMTP and don't specify Host, it will default to localhost and
-attempt delivery.  This often times means an email will sit in a queue
-somewhere and not be delivered.
+attempt delivery. This often means an email will sit in a queue and
+not be delivered.
 
 =cut
 
 __PACKAGE__->config(
     stash_key   => 'email',
     default     => {
-        content_type    => 'text/html',
+        content_type    => 'text/plain',
     },
 );
 
 =head1 SENDING EMAIL
 
-In your controller, simply forward to the view after populating the C<stash_key>
+Sending email is just filling the stash and forwarding to the view:
 
     sub controller : Private {
         my ( $self, $c ) = @_;
+
         $c->stash->{email} = {
-            to      => q{catalyst@rocksyoursocks.com},
-            cc      => q{foo@bar.com},
-            bcc     => q{hidden@secret.com},
-            from    => q{no-reply@socksthatarerocked.com},
-            subject => qq{Your Subject Here},
-            body    => qq{Body Body Body}
+            to      => 'jshirley@gmail.com',
+            cc      => 'abraxxa@cpan.org',
+            bcc     => [ qw/hidden@secret.com hidden2@foobar.com/ ],
+            from    => 'no-reply@foobar.com',
+            subject => 'I am a Catalyst generated email',
+            body    => 'Body Body Body',
         };
-        $c->forward( $c->view('Email' ) );
+        
+        $c->forward( $c->view('Email') );
     }
 
-Alternatively, you can use a more raw interface, and specify the headers as
-an array reference.
+Alternatively you can use a more raw interface and specify the headers as
+an array reference like it is passed to L<Email::MIME::Creator>.
+Note that you may also mix both syntaxes if you like ours better but need to
+specify additional header attributes.
+The attributes are appended to the header array reference without overwriting
+contained ones.
 
     $c->stash->{email} = {
         header => [
-            To      => 'foo@bar.com',
-            Subject => 'Note the capitalization differences'
+            To      => 'jshirley@gmail.com',
+            Cc      => 'abraxxa@cpan.org',
+            Bcc     => [ qw/hidden@secret.com hidden2@foobar.com/ ],
+            From    => 'no-reply@foobar.com',
+            Subject => 'Note the capitalization differences',
         ],
         body => qq{Ain't got no body, and nobody cares.},
         # Or, send parts
@@ -108,22 +119,23 @@ an array reference.
                     disposition  => 'attachment',
                     charset      => 'US-ASCII',
                 },
-                body => qq{Got a body, but didn't get ahead.}
+                body => qq{Got a body, but didn't get ahead.},
             )
         ],
     };
 
 =head1 HANDLING ERRORS
 
-If the email fails to send, the view will die (throw an exception).  After
-your forward to the view, it is a good idea to check for errors:
+If the email fails to send, the view will die (throw an exception).
+After your forward to the view, it is a good idea to check for errors:
     
-    $c->forward( $c->view('Email' ) );
+    $c->forward( $c->view('Email') );
+    
     if ( scalar( @{ $c->error } ) ) {
         $c->error(0); # Reset the error condition if you need to
-        $c->res->body('Oh noes!');
+        $c->response->body('Oh noes!');
     } else {
-        $c->res->body('Email sent A-OK! (At least as far as we can tell)');
+        $c->response->body('Email sent A-OK! (At least as far as we can tell)');
     }
 
 =head1 USING TEMPLATES FOR EMAIL
@@ -132,14 +144,20 @@ Now, it's no fun to just send out email using plain strings.
 Take a look at L<Catalyst::View::Email::Template> to see how you can use your
 favourite template engine to render the mail body.
 
+=head1 METHODS
+
+=over 4
+
+=item new
+
+Validates the base config and creates the L<Email::Send> object for later use
+by process.
 
 =cut
 
 sub new {
     my $self = shift->next::method(@_);
 
-    my ( $c, $arguments ) = @_;
-    
     my $stash_key = $self->{stash_key};
     croak "$self stash_key isn't defined!"
         if ($stash_key eq '');
@@ -150,7 +168,8 @@ sub new {
         croak "$mailer is not supported, see Email::Send"
             unless $sender->mailer_available($mailer);
         $sender->mailer($mailer);
-    } else {
+    }
+    else {
         # Default case, run through the most likely options first.
         for ( qw/SMTP Sendmail Qmail/ ) {
             $sender->mailer($_) and last if $sender->mailer_available($_);
@@ -173,7 +192,7 @@ sub new {
     return $self;
 }
 
-=head2 process
+=item process($c)
 
 The process method does the actual processing when the view is dispatched to.
 
@@ -233,8 +252,6 @@ sub process {
 
     my $message = $self->generate_message( $c, \%mime );
 
-    #my $message = Email::MIME->create(%mime);
-
     if ( $message ) {
         my $return = $self->mailer->send($message);
         # return is a Return::Value object, so this will stringify as the error
@@ -245,9 +262,9 @@ sub process {
     }
 }
 
-=head2 setup_attributes
+=item setup_attributes($c, $attr)
 
-Merge attributes with the configured defaults.  You can override this method to
+Merge attributes with the configured defaults. You can override this method to
 return a structure to pass into L<generate_message> which subsequently
 passes the return value of this method to Email::MIME->create under the
 C<attributes> key.
@@ -281,7 +298,7 @@ sub setup_attributes {
     return $e_m_attrs;
 }
 
-=head2 generate_message($c, $attr)
+=item generate_message($c, $attr)
 
 Generate a message part, which should be an L<Email::MIME> object and return it.
 
@@ -298,6 +315,8 @@ sub generate_message {
     return Email::MIME->create(%$attr);
 }
 
+=back
+
 =head1 SEE ALSO
 
 =head2 L<Catalyst::View::Email::Template> - Send fancy template emails with Cat
@@ -310,6 +329,8 @@ sub generate_message {
 
 J. Shirley <jshirley@gmail.com>
 
+Alexander Hartmaier <abraxxa@cpan.org>
+
 =head1 CONTRIBUTORS
 
 (Thanks!)
@@ -321,8 +342,6 @@ Daniel Westermann-Clark
 Simon Elliott <cpan@browsing.co.uk>
 
 Roman Filippov
-
-Alexander Hartmaier <alex_hartmaier@hotmail.com>
 
 =head1 LICENSE
 

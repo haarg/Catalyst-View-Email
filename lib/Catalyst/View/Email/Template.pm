@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View::Email /;
 
-our $VERSION = '0.09999_02';
+our $VERSION = '0.10';
 
 =head1 NAME
 
@@ -19,15 +19,19 @@ Catalyst::View::Email::Template - Send Templated Email from Catalyst
 
 =head1 SYNOPSIS
 
-Sends Templated mail, based upon your default view. It captures the output
+Sends templated mail, based upon your default view. It captures the output
 of the rendering path, slurps in based on mime-types and assembles a multi-part
-email using Email::MIME::Creator and sends it out.
+email using L<Email::MIME::Creator> and sends it out.
 
 =head1 CONFIGURATION
 
-Use the helper to create your View:
+WARNING: since version 0.10 the configuration options slightly changed!
+
+Use the helper to create your view:
     
     $ script/myapp_create.pl view Email::Template Email::Template
+
+For basic configuration look at L<Catalyst::View::Email/CONFIGURATION>.
 
 In your app configuration (example in L<YAML>):
 
@@ -36,49 +40,34 @@ In your app configuration (example in L<YAML>):
         # template  paths.
         # Default: none
         template_prefix: email
-        # Where to look in the stash for the email information.
-        # Default: email
-        stash_key: email
         # Define the defaults for the mail
         default:
-            # Defines the default content type (mime type).
-            # Mandatory
-            content_type: text/html
-            # Defines the default charset for every MIME part with the content
-            # type text.
-            # According to RFC2049 a MIME part without a charset should
-            # be treated as US-ASCII by the mail client.
-            # If the charset is not set it won't be set for all MIME parts
-            # without an overridden one.
-            # Default: none
-            charset: utf-8
             # Defines the default view used to render the templates.
             # If none is specified neither here nor in the stash
             # Catalysts default view is used.
             # Warning: if you don't tell Catalyst explicit which of your views should
             # be its default one, C::V::Email::Template may choose the wrong one!
             view: TT
-        # Setup how to send the email
-        # All those options are passed directly to Email::Send,
-        # for all available options look at its docs.
-        sender:
-            mailer: SMTP
-            mailer_args:
-                Host:       smtp.example.com # defaults to localhost
-                username:   username
-                password:   password
 
 =head1 SENDING EMAIL
 
-Sending email is just setting up your defaults, the stash key and forwarding to the view.
+Sending email works just like for L<Catalyst::View::Email> but by specifying 
+the template instead of the body and forwarding to your Email::Template view:
 
-    $c->stash->{email} = {
-        to      => 'jshirley@gmail.com',
-        from    => 'no-reply@foobar.com',
-        subject => 'I am a Catalyst generated email',
-        template => 'test.tt',
-    };
-    $c->forward( $c->view('Email::Template' ) );
+    sub controller : Private {
+        my ( $self, $c ) = @_;
+
+        $c->stash->{email} = {
+            to          => 'jshirley@gmail.com',
+            cc          => 'abraxxa@cpan.org',
+            bcc         => [ qw/hidden@secret.com hidden2@foobar.com/ ],
+            from        => 'no-reply@foobar.com',
+            subject     => 'I am a Catalyst generated email',
+            template    => 'test.tt',
+        };
+        
+        $c->forward( $c->view('Email::Template') );
+    }
 
 Alternatively if you want more control over your templates you can use the following idiom
 to override the defaults:
@@ -99,7 +88,9 @@ to override the defaults:
     ]
 
 
-If it fails $c->error will have the error message.
+=head1 HANDLING ERRORS
+
+See L<Catalyst::View::Email/HANDLING ERRORS>.
 
 =cut
 
@@ -131,19 +122,23 @@ __PACKAGE__->config(
 sub _validate_view {
     my ($self, $view) = @_;
     
-    croak "Email::Template's configured view '$view' isn't an object!"
+    croak "C::V::Email::Template's configured view '$view' isn't an object!"
         unless (blessed($view));
 
-    croak "Email::Template's configured view '$view' isn't an Catalyst::View!"
+    croak "C::V::Email::Template's configured view '$view' isn't an Catalyst::View!"
         unless ($view->isa('Catalyst::View'));
 
-    croak "Email::Template's configured view '$view' doesn't have a render method!"
+    croak "C::V::Email::Template's configured view '$view' doesn't have a render method!"
         unless ($view->can('render'));
 }
 
-=head2 generate_part
+=head1 METHODS
 
-Generate a MIME part to include in the email.  Since the email is template based
+=over 4
+
+=item generate_part
+
+Generates a MIME part to include in the email. Since the email is template based
 every template piece is a separate part that is included in the email.
 
 =cut
@@ -199,12 +194,12 @@ sub generate_part {
     );
 }
 
-=head2 process
+=item process
 
-The process method is called when the view is dispatched to.  This creates the
+The process method is called when the view is dispatched to. This creates the
 multipart message and then sends the message contents off to
-L<Catalyst::View::Email> for processing, which in turn hands off to 
-L<Email::Send>
+L<Catalyst::View::Email> for processing, which in turn hands off to
+L<Email::Send>.
 
 =cut
 
@@ -259,6 +254,8 @@ sub process {
     return $self->next::method($c);
 }
 
+=back
+
 =head1 TODO
 
 =head2 ATTACHMENTS
@@ -290,7 +287,7 @@ J. Shirley <jshirley@gmail.com>
 
 Simon Elliott <cpan@browsing.co.uk>
 
-Alexander Hartmaier <alex_hartmaier@hotmail.com>
+Alexander Hartmaier <abraxxa@cpan.org>
 
 =head1 LICENSE
 
