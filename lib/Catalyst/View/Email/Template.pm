@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View::Email /;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 =head1 NAME
 
@@ -64,6 +64,7 @@ the template instead of the body and forwarding to your Email::Template view:
             from        => 'no-reply@foobar.com',
             subject     => 'I am a Catalyst generated email',
             template    => 'test.tt',
+            content_type => 'multipart/alternative'
         };
         
         $c->forward( $c->view('Email::Template') );

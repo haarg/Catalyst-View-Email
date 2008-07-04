@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View /;
 
-our $VERSION = '0.10';
+our $VERSION = '0.11';
 
 __PACKAGE__->mk_accessors(qw/ mailer /);
 
@@ -211,8 +211,9 @@ sub process {
     croak "Can't send email without a valid email structure"
         unless $email;
 
-    if ( exists $self->{content_type} ) {
-        $email->{content_type} ||= $self->{content_type};
+    # Default content type
+    if ( exists $self->{content_type} and not $email->{content_type} ) {
+        $email->{content_type} = $self->{content_type};
     }
 
     my $header  = $email->{header} || [];
@@ -226,7 +227,7 @@ sub process {
             if $email->{from};
         push @$header, ('Subject' => delete $email->{subject})
             if $email->{subject};
-        push @$header, ('Content-type' => delete $email->{content_type})
+        push @$header, ('Content-type' => $email->{content_type})
             if $email->{content_type};
 
     my $parts = $email->{parts};
@@ -236,14 +237,16 @@ sub process {
         croak "Can't send email without parts or body, check stash";
     }
 
-    my %mime = ( header => $header );
+    my %mime = ( header => $header, attributes => {} );
 
     if ( $parts and ref $parts eq 'ARRAY' ) {
         $mime{parts} = $parts;
     } else {
         $mime{body} = $body;
     }
-    
+
+    $mime{attributes}->{content_type} = $email->{content_type} 
+        if $email->{content_type};
     if ( $mime{attributes} and not $mime{attributes}->{charset} and
          $self->{default}->{charset} )
     {

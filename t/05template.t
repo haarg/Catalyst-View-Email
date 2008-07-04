@@ -11,7 +11,7 @@ if ( $@ ) {
     plan skip_all => 'Catalyst::View::TT required for Template tests';
     exit;
 }
-plan tests => 10;
+plan tests => 11;
 
 use_ok('Catalyst::Test', 'TestApp');
 
@@ -24,10 +24,13 @@ my @emails = Email::Send::Test->emails;
 
 cmp_ok(@emails, '==', 1, 'got emails');
 isa_ok( $emails[0], 'Email::MIME', 'email is ok' );
+
+like($emails[0]->content_type, qr#^multipart/alternative#, 'Multipart email');
+
 my @parts = $emails[0]->parts;
 cmp_ok(@parts, '==', 2, 'got parts');
 
-is($parts[0]->content_type, 'text/plain; charset="us-ascii"', 'text/plain ok');
+is($parts[0]->content_type, 'text/plain; charset="us-ascii"', 'text/plain part ok');
 like($parts[0]->body, qr/test-email\@example.com on $time/, 'got content back');
 
 is($parts[1]->content_type, 'text/html; charset="us-ascii"', 'text/html ok');

@@ -59,9 +59,10 @@ sub template_email : Global('template_email') {
     $c->stash->{time} = $c->req->params->{time} || time;
 
     $c->stash->{email} = {
-        to      => 'test-email@example.com',
-        from    => 'no-reply@example.com',
-        subject => 'Just a test',
+        to           => 'test-email@example.com',
+        from         => 'no-reply@example.com',
+        subject      => 'Just a test',
+        content_type => 'multipart/alternative',
         templates => [
             {
                 template        => 'text_plain/test.tt',
