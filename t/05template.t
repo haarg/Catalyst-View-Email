@@ -30,10 +30,10 @@ like($emails[0]->content_type, qr#^multipart/alternative#, 'Multipart email');
 my @parts = $emails[0]->parts;
 cmp_ok(@parts, '==', 2, 'got parts');
 
-is($parts[0]->content_type, 'text/plain; charset="us-ascii"', 'text/plain part ok');
+is($parts[0]->content_type, 'text/plain', 'text/plain part ok');
 like($parts[0]->body, qr/test-email\@example.com on $time/, 'got content back');
 
-is($parts[1]->content_type, 'text/html; charset="us-ascii"', 'text/html ok');
+is($parts[1]->content_type, 'text/html', 'text/html ok');
 like($parts[1]->body, qr{<em>test-email\@example.com</em> on $time}, 'got content back');
 #like($emails[0]->body, qr/$time/, 'Got our email');
 
