@@ -8,7 +8,7 @@ requires 'Class::C3';
 
 requires 'Email::Send'          => '2.185';
 requires 'Email::MIME'          => '1.859';
-requires 'Email::MIME::Creator' => '1.453';
+requires 'Email::MIME::Creator' => '1.455';
 
 feature 'Template Toolkit Support',
     -default => 1,
@@ -22,7 +22,6 @@ feature 'Net::SMTP Support',
     -default => 0,
     'MIME::Base64',
     'Authen::SASL';
-
 
 auto_install;
 WriteAll;

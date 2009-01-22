@@ -205,7 +205,7 @@ L<Email::Send>.
 =cut
 
 sub process {
-    my ( $self, $c ) = @_;
+    my ( $self, $c, @args ) = @_;
 
     # don't validate template_prefix
 
@@ -215,7 +215,8 @@ sub process {
     
     my $stash_key = $self->{stash_key};
 
-    croak "No template specified for rendering"
+    # Go upstream if we don't have a template
+    $self->next::method($c, @args)
         unless $c->stash->{$stash_key}->{template}
             or $c->stash->{$stash_key}->{templates};
     

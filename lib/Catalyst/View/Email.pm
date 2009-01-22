@@ -6,12 +6,13 @@ use strict;
 use Class::C3;
 use Carp;
 
+use Encode qw(encode decode);
 use Email::Send;
 use Email::MIME::Creator;
 
-use base qw/ Catalyst::View /;
+use parent 'Catalyst::View';
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 __PACKAGE__->mk_accessors(qw/ mailer /);
 
@@ -32,34 +33,37 @@ Use the helper to create your View:
     
     $ script/myapp_create.pl view Email Email
 
-In your app configuration (example in L<YAML>):
+In your app configuration:
 
-    View::Email:
-        # Where to look in the stash for the email information.
-        # 'email' is the default, so you don't have to specify it.
-        stash_key: email
-        # Define the defaults for the mail
-        default:
-            # Defines the default content type (mime type).
-            # mandatory
-            content_type: text/plain
-            # Defines the default charset for every MIME part with the content
-            # type text.
-            # According to RFC2049 a MIME part without a charset should
-            # be treated as US-ASCII by the mail client.
-            # If the charset is not set it won't be set for all MIME parts
-            # without an overridden one.
-            # Default: none
-            charset: utf-8
-        # Setup how to send the email
-        # all those options are passed directly to Email::Send
-        sender:
-            mailer: SMTP
-            # mailer_args is passed directly into Email::Send 
-            mailer_args:
-                Host:       smtp.example.com # defaults to localhost
-                username:   username
-                password:   password
+    __PACKAGE__->config(
+        'View::Email' => {
+            # Where to look in the stash for the email information.
+            # 'email' is the default, so you don't have to specify it.
+            stash_key => 'email',
+            # Define the defaults for the mail
+            default => {
+                # Defines the default content type (mime type). Mandatory
+                content_type => 'text/plain',
+                # Defines the default charset for every MIME part with the 
+                # content type text.
+                # According to RFC2049 a MIME part without a charset should
+                # be treated as US-ASCII by the mail client.
+                # If the charset is not set it won't be set for all MIME parts
+                # without an overridden one.
+                # Default: none
+                charset => 'utf-8'
+            }
+            # Setup how to send the email
+            # all those options are passed directly to Email::Send
+            sender => {
+                mailer => 'SMTP'
+                # mailer_args is passed directly into Email::Send 
+                mailer_args => {
+                    Host     => 'smtp.example.com', # defaults to localhost
+                    username => 'username',
+                    password => 'password',
+            }
+    );
 
 =head1 NOTE ON SMTP
 
@@ -225,7 +229,7 @@ sub process {
             if $email->{bcc};
         push @$header, ('From' => delete $email->{from})
             if $email->{from};
-        push @$header, ('Subject' => delete $email->{subject})
+        push @$header, ('Subject' => Encode::encode('MIME-Header', delete $email->{subject}))
             if $email->{subject};
         push @$header, ('Content-type' => $email->{content_type})
             if $email->{content_type};
@@ -319,6 +323,24 @@ sub generate_message {
 }
 
 =back
+
+=head1 TROUBLESHOOTING
+
+As with most things computer related, things break.  Email even more so.  
+Typically any errors are going to come from using SMTP as your sending method,
+which means that if you are having trouble the first place to look is at
+L<Email::Send::SMTP>.  This module is just a wrapper for L<Email::Send>,
+so if you get an error on sending, it is likely from there anyway.
+
+If you are using SMTP and have troubles sending, whether it is authentication
+or a very bland "Can't send" message, make sure that you have L<Net::SMTP> and,
+if applicable, L<Net::SMTP::SSL> installed.
+
+It is very simple to check that you can connect via L<Net::SMTP>, and if you
+do have sending errors the first thing to do is to write a simple script
+that attempts to connect.  If it works, it is probably something in your
+configuration so double check there.  If it doesn't, well, keep modifying
+the script and/or your mail server configuration until it does!
 
 =head1 SEE ALSO
 
