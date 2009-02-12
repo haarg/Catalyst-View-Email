@@ -11,7 +11,7 @@ use Email::MIME::Creator;
 
 use base qw/ Catalyst::View::Email /;
 
-our $VERSION = '0.11';
+our $VERSION = '0.13';
 
 =head1 NAME
 
