@@ -12,7 +12,7 @@ use Email::MIME::Creator;
 
 use parent 'Catalyst::View';
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 __PACKAGE__->mk_accessors(qw/ mailer /);
 
@@ -90,7 +90,7 @@ Sending email is just filling the stash and forwarding to the view:
         $c->stash->{email} = {
             to      => 'jshirley@gmail.com',
             cc      => 'abraxxa@cpan.org',
-            bcc     => [ qw/hidden@secret.com hidden2@foobar.com/ ],
+            bcc     => 'hidden@secret.com, hidden2@foobar.com',
             from    => 'no-reply@foobar.com',
             subject => 'I am a Catalyst generated email',
             body    => 'Body Body Body',
@@ -110,7 +110,7 @@ contained ones.
         header => [
             To      => 'jshirley@gmail.com',
             Cc      => 'abraxxa@cpan.org',
-            Bcc     => [ qw/hidden@secret.com hidden2@foobar.com/ ],
+            Bcc     => 'hidden@secret.com, hidden2@foobar.com',
             From    => 'no-reply@foobar.com',
             Subject => 'Note the capitalization differences',
         ],
@@ -367,6 +367,8 @@ Daniel Westermann-Clark
 Simon Elliott <cpan@browsing.co.uk>
 
 Roman Filippov
+
+Lance Brown <lance@bearcircle.net>
 
 =head1 LICENSE
 
