@@ -52,11 +52,11 @@ In your app configuration:
                 # without an overridden one.
                 # Default: none
                 charset => 'utf-8'
-            }
+            },
             # Setup how to send the email
             # all those options are passed directly to Email::Send
             sender => {
-                mailer => 'SMTP'
+                mailer => 'SMTP',
                 # mailer_args is passed directly into Email::Send 
                 mailer_args => {
                     Host     => 'smtp.example.com', # defaults to localhost
