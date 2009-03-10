@@ -63,6 +63,8 @@ In your app configuration:
                     username => 'username',
                     password => 'password',
             }
+          }
+        }
     );
 
 =head1 NOTE ON SMTP
@@ -90,7 +92,7 @@ Sending email is just filling the stash and forwarding to the view:
         $c->stash->{email} = {
             to      => 'jshirley@gmail.com',
             cc      => 'abraxxa@cpan.org',
-            bcc     => 'hidden@secret.com, hidden2@foobar.com',
+            bcc     => join ',', qw/hidden@secret.com hidden2@foobar.com/,
             from    => 'no-reply@foobar.com',
             subject => 'I am a Catalyst generated email',
             body    => 'Body Body Body',
@@ -110,7 +112,7 @@ contained ones.
         header => [
             To      => 'jshirley@gmail.com',
             Cc      => 'abraxxa@cpan.org',
-            Bcc     => 'hidden@secret.com, hidden2@foobar.com',
+            Bcc     => join ',', qw/hidden@secret.com hidden2@foobar.com/,
             From    => 'no-reply@foobar.com',
             Subject => 'Note the capitalization differences',
         ],
