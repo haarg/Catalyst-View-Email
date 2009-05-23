@@ -25,4 +25,6 @@ feature 'Net::SMTP Support',
 
 
 auto_install;
+resources repository => 'http://dev.catalyst.perl.org/repos/Catalyst/Catalyst-View-Email/0.06/';
+
 WriteAll;
