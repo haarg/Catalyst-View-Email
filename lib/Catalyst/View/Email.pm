@@ -372,6 +372,12 @@ Roman Filippov
 
 Lance Brown <lance@bearcircle.net>
 
+=head1 COPYRIGHT
+
+Copyright (c) 2007 - 2009
+the Catalyst::View::Email L</AUTHORS> and L</CONTRIBUTORS>
+as listed above.
+
 =head1 LICENSE
 
 This library is free software, you can redistribute it and/or modify it under
