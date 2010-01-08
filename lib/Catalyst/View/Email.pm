@@ -5,40 +5,44 @@ use Carp;
 
 use Encode qw(encode decode);
 use Email::Sender::Simple qw/ sendmail /;
-use Email::Simple;
-use Email::Simple::Creator;
-
+use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.13';
+our $VERSION = '0.13.01';
+
+has 'mailer' => (
+    is      => 'rw',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { "sendmail" }
+);
 
 has 'stash_key' => (
     is      => 'rw',
-	isa     => 'Str',
-	lazy    => 1,
+    isa     => 'Str',
+    lazy    => 1,
     default => sub { "email" }
 );
 
 has 'default' => (
     is      => 'rw',
-	isa     => 'HashRef',
-	default => sub { { content_type => 'text/plain' } },
+    isa     => 'HashRef',
+    default => sub { { content_type => 'text/plain' } },
     lazy    => 1,
 );
 
-
 has 'sender' => (
     is      => 'rw',
-	isa     => 'HashRef',
-	lazy    => 1,
-    default => sub { { mailer => 'sendmail' } }
+    isa     => 'HashRef',
+    lazy    => 1,
+    default => sub { { mailer => shift->mailer } }
 );
 
 has 'content_type' => (
     is      => 'rw',
 	isa     => 'Str',
+	default => sub { shift->default->{content_type} },
 	lazy    => 1,
-	default => sub { shift->default->{'content_type'} }
 );
 
 =head1 NAME
@@ -99,7 +103,6 @@ attempt delivery. This often means an email will sit in a queue and
 not be delivered.
 
 =cut
-
 
 =head1 SENDING EMAIL
 
@@ -179,12 +182,13 @@ Validates the base config and creates the L<Email::Send> object for later use
 by process.
 
 =cut
+
 sub BUILD {
     my $self = shift;
 
     my $stash_key = $self->stash_key;
-	croak "$self stash_key isn't defined!"
-	    if ($stash_key eq '');
+    croak "$self stash_key isn't defined!"
+      if ( $stash_key eq '' );
 
 }
 
@@ -201,27 +205,35 @@ sub process {
     my ( $self, $c ) = @_;
 
     croak "Unable to send mail, bad mail configuration"
-        unless $self->mailer;
+      unless $self->mailer;
 
-    my $email  = $c->stash->{$self->{stash_key}};
+    my $email = $c->stash->{ $self->stash_key };
     croak "Can't send email without a valid email structure"
-        unless $email;
+      unless $email;
 
-    my $header  = $email->{header} || [];
-        push @$header, ('To' => delete $email->{to})
-            if $email->{to};
-        push @$header, ('Cc' => delete $email->{cc})
-            if $email->{cc};
-        push @$header, ('Bcc' => delete $email->{bcc})
-            if $email->{bcc};
-        push @$header, ('From' => delete $email->{from})
-            if $email->{from};
-        push @$header, ('Subject' => Encode::encode('MIME-Header', delete $email->{subject}))
-            if $email->{subject};
+    # Default content type
+    if ( $self->content_type and not $email->{content_type} ) {
+        $email->{content_type} = $self->content_type;
+    }
+
+    my $header = $email->{header} || [];
+    push @$header, ( 'To' => delete $email->{to} )
+      if $email->{to};
+    push @$header, ( 'Cc' => delete $email->{cc} )
+      if $email->{cc};
+    push @$header, ( 'Bcc' => delete $email->{bcc} )
+      if $email->{bcc};
+    push @$header, ( 'From' => delete $email->{from} )
+      if $email->{from};
+    push @$header,
+      ( 'Subject' => Encode::encode( 'MIME-Header', delete $email->{subject} ) )
+      if $email->{subject};
+    push @$header, ( 'Content-type' => $email->{content_type} )
+      if $email->{content_type};
 
     my $parts = $email->{parts};
     my $body  = $email->{body};
-   
+
     unless ( $parts or $body ) {
         croak "Can't send email without parts or body, check stash";
     }
@@ -230,18 +242,30 @@ sub process {
 
     if ( $parts and ref $parts eq 'ARRAY' ) {
         $mime{parts} = $parts;
-    } else {
+    }
+    else {
         $mime{body} = $body;
+    }
+
+    $mime{attributes}->{content_type} = $email->{content_type}
+      if $email->{content_type};
+    if (    $mime{attributes}
+        and not $mime{attributes}->{charset}
+        and $self->{default}->{charset} )
+    {
+        $mime{attributes}->{charset} = $self->{default}->{charset};
     }
 
     my $message = $self->generate_message( $c, \%mime );
 
-    if ( $message ) {
-        my $return = sendmail($message);
+    if ($message) {
+        my $return = sendmail( $message, { transport => $self->mailer } );
+
         # return is a Return::Value object, so this will stringify as the error
-        # in the case of a failure.  
+        # in the case of a failure.
         croak "$return" if !$return;
-    } else {
+    }
+    else {
         croak "Unable to create message";
     }
 }
@@ -255,6 +279,44 @@ C<attributes> key.
 
 =cut
 
+sub setup_attributes {
+    my ( $self, $c, $attrs ) = @_;
+
+    my $default_content_type = $self->default->{content_type};
+    my $default_charset      = $self->default->{charset};
+
+    my $e_m_attrs = {};
+
+    if (   exists $attrs->{content_type}
+        && defined $attrs->{content_type}
+        && $attrs->{content_type} ne '' )
+    {
+        $c->log->debug( 'C::V::Email uses specified content_type '
+              . $attrs->{content_type}
+              . '.' )
+          if $c->debug;
+        $e_m_attrs->{content_type} = $attrs->{content_type};
+    }
+    elsif ( defined $default_content_type && $default_content_type ne '' ) {
+        $c->log->debug(
+            "C::V::Email uses default content_type $default_content_type.")
+          if $c->debug;
+        $e_m_attrs->{content_type} = $default_content_type;
+    }
+
+    if (   exists $attrs->{charset}
+        && defined $attrs->{charset}
+        && $attrs->{charset} ne '' )
+    {
+        $e_m_attrs->{charset} = $attrs->{charset};
+    }
+    elsif ( defined $default_charset && $default_charset ne '' ) {
+        $e_m_attrs->{charset} = $default_charset;
+    }
+
+    return $e_m_attrs;
+}
+
 =item generate_message($c, $attr)
 
 Generate a message part, which should be an L<Email::MIME> object and return it.
@@ -267,11 +329,12 @@ message object.
 sub generate_message {
     my ( $self, $c, $attr ) = @_;
 
-    # setup the attributes (merge with defaults)
+    # setup the attributes (merge with defaultis)
+	$attr->{attributes} = $self->setup_attributes($c, $attr->{attributes});
     return Email::Simple->create(
-	    header => $attr->{header},
-		body   => $attr->{body}
-	);
+        header => $attr->{header},
+        body   => $attr->{body}
+    );
 }
 
 =back
