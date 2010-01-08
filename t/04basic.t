@@ -14,9 +14,6 @@ my $time = time;
 ok( ($response = request("/email?time=$time"))->is_success, 'request ok');
 
 my @emails = Email::Sender::Simple->default_transport->deliveries;
-use Data::Dumper;
-warn "Emails: " . Dumper @emails;
-warn "Body: " . $emails[0]->{'email'}->[0]->body;
 is( scalar @emails, 1, "got emails");
 isa_ok( $emails[0]->{'email'}, 'Email::Abstract', 'email is ok' );
 like($emails[0]->{'email'}->[0]->body, qr/$time/, 'Got our email');
