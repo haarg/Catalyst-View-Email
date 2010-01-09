@@ -17,6 +17,7 @@ TestApp->config(
         sender => {
             mailer => 'Test',
         },
+		content_type => 'text/html',
         default => {
             view => 'TT',
         },

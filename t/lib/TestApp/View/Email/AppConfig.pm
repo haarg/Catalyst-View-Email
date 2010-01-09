@@ -1,7 +1,7 @@
 package # Hide from PAUSE
     TestApp::View::Email::AppConfig;
 
-use Email::Send::Test;
+use Email::Sender::Simple;
 
 use base 'Catalyst::View::Email';
 
