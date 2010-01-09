@@ -127,10 +127,10 @@ sub mason_email : Global('mason_email') {
         to      => 'test-email@example.com',
         from    => 'no-reply@example.com',
         subject => 'Just a test',
-        view    => 'Mason',
         templates => [
             {
-                template        => 'text_plain/test.m',
+                view            => 'Mason',
+		        template        => 'text_plain/test.m',
                 content_type    => 'text/plain',
             },
             {

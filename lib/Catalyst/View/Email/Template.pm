@@ -3,7 +3,7 @@ package Catalyst::View::Email::Template;
 use Moose;
 use Carp;
 use Scalar::Util qw/ blessed /;
-
+use Data::Dumper;
 extends 'Catalyst::View::Email';
 
 our $VERSION = '0.13.01';
@@ -218,10 +218,10 @@ sub generate_part {
         {
             content_type => $e_m_attrs->{content_type},
             stash_key    => $self->stash_key,
-            %{ $c->stash },
+            %{$c->stash},
         }
     );
-
+    warn "Email output: $output";
     if ( ref $output ) {
         croak $output->can('as_string') ? $output->as_string : $output;
     }
@@ -286,7 +286,8 @@ around 'process' => sub {
     delete $c->stash->{$stash_key}->{body};
     $c->stash->{$stash_key}->{parts} ||= [];
     push @{ $c->stash->{$stash_key}->{parts} }, @parts;
-
+    
+	warn "Stash: " . Dumper $c->stash;
     return $self->$orig($c);
 
 };
