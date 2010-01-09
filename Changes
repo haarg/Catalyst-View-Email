@@ -1,5 +1,10 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.13.01 2010-01-09
+        - Ported over to using Email::Sender::Simple, and Moose
+		- Fixed Mason test so that it doesn't choke, as around 'process' seems to make
+		  it die.
+
 0.13    2009-02-22 14:06:00
         - bcc: POD corrections thanks to Lance Brown <lance@bearcircle.net>
 
