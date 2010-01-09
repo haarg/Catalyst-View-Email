@@ -331,10 +331,9 @@ sub generate_message {
 
     # setup the attributes (merge with defaultis)
 	$attr->{attributes} = $self->setup_attributes($c, $attr->{attributes});
-    return Email::Simple->create(
-        header => $attr->{header},
-        body   => $attr->{body}
-    );
+    Email::MIME->create(
+	    %$attr
+	);
 }
 
 =back
