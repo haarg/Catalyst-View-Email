@@ -6,7 +6,7 @@ use Scalar::Util qw/ blessed /;
 
 extends 'Catalyst::View::Email';
 
-our $VERSION = '0.13';
+our $VERSION = '0.13.01';
 
 =head1 NAME
 
@@ -244,7 +244,7 @@ L<Email::Send>.
 around 'process' => sub {
     my ( $orig, $self, $c, @args ) = @_;
     my $stash_key = $self->stash_key;
-    return $self->SUPER::process( $c, @args )
+    return $self->$orig( $c, @args )
       unless $c->stash->{$stash_key}->{template}
           or $c->stash->{$stash_key}->{templates};
     warn "Stash: " . $stash_key;
@@ -287,7 +287,7 @@ around 'process' => sub {
     $c->stash->{$stash_key}->{parts} ||= [];
     push @{ $c->stash->{$stash_key}->{parts} }, @parts;
 
-    return $self->SUPER::process($c);
+    return $self->$orig($c);
 
 };
 
