@@ -384,6 +384,8 @@ Roman Filippov
 
 Lance Brown <lance@bearcircle.net>
 
+Devin Austin <dhoss@cpan.org>
+
 =head1 COPYRIGHT
 
 Copyright (c) 2007 - 2009
