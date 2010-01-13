@@ -1,17 +1,12 @@
 package Catalyst::View::Email::Template;
 
-use warnings;
-use strict;
-
-use Class::C3;
+use Moose;
 use Carp;
 use Scalar::Util qw/ blessed /;
+use Data::Dumper;
+extends 'Catalyst::View::Email';
 
-use Email::MIME::Creator;
-
-use base qw/ Catalyst::View::Email /;
-
-our $VERSION = '0.13';
+our $VERSION = '0.13.01';
 
 =head1 NAME
 
@@ -98,10 +93,31 @@ See L<Catalyst::View::Email/HANDLING ERRORS>.
 # here the defaults of Catalyst::View::Email are extended by the additional
 # ones Template.pm needs.
 
-__PACKAGE__->config(
-    template_prefix => '',
+has 'stash_key' => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => sub { "email" },
+    lazy    => 1,
 );
 
+has 'template_prefix' => (
+    is      => 'rw',
+    isa     => 'Str',
+    default => sub { '' },
+    lazy    => 1,
+);
+
+has 'default' => (
+    is      => 'rw',
+    isa     => 'HashRef',
+    default => sub {
+        {
+            view         => 'TT',
+            content_type => 'text/html',
+        };
+    },
+    lazy => 1,
+);
 
 # This view hitches into your default view and will call the render function
 # on the templates provided.  This means that you have a layer of abstraction
@@ -121,16 +137,18 @@ __PACKAGE__->config(
 #multipart/alternative
 
 sub _validate_view {
-    my ($self, $view) = @_;
-    
+    my ( $self, $view ) = @_;
+
     croak "C::V::Email::Template's configured view '$view' isn't an object!"
-        unless (blessed($view));
+      unless ( blessed($view) );
 
-    croak "C::V::Email::Template's configured view '$view' isn't an Catalyst::View!"
-        unless ($view->isa('Catalyst::View'));
+    croak
+      "C::V::Email::Template's configured view '$view' isn't an Catalyst::View!"
+      unless ( $view->isa('Catalyst::View') );
 
-    croak "C::V::Email::Template's configured view '$view' doesn't have a render method!"
-        unless ($view->can('render'));
+    croak
+"C::V::Email::Template's configured view '$view' doesn't have a render method!"
+      unless ( $view->can('render') );
 }
 
 =head1 METHODS
@@ -145,46 +163,65 @@ every template piece is a separate part that is included in the email.
 =cut
 
 sub generate_part {
-    my ($self, $c, $attrs) = @_;
+    my ( $self, $c, $attrs ) = @_;
 
-    my $template_prefix         = $self->{template_prefix};
-    my $default_view            = $self->{default}->{view};
-    my $default_content_type    = $self->{default}->{content_type};
-    my $default_charset         = $self->{default}->{charset};
+    my $template_prefix      = $self->template_prefix;
+    my $default_view         = $self->default->{view};
+    my $default_content_type = $self->default->{content_type};
+    my $default_charset      = $self->default->{charset};
 
     my $view;
+
     # use the view specified for the email part
-    if (exists $attrs->{view} && defined $attrs->{view} && $attrs->{view} ne '') {
-        $view = $c->view($attrs->{view});
-        $c->log->debug("C::V::Email::Template uses specified view $view for rendering.") if $c->debug;
+    if (   exists $attrs->{view}
+        && defined $attrs->{view}
+        && $attrs->{view} ne '' )
+    {
+        $view = $c->view( $attrs->{view} );
+        $c->log->debug(
+            "C::V::Email::Template uses specified view $view for rendering.")
+          if $c->debug;
     }
+
     # if none specified use the configured default view
     elsif ($default_view) {
         $view = $c->view($default_view);
-        $c->log->debug("C::V::Email::Template uses default view $view for rendering.") if $c->debug;;
+        $c->log->debug(
+            "C::V::Email::Template uses default view $view for rendering.")
+          if $c->debug;
     }
+
     # else fallback to Catalysts default view
     else {
         $view = $c->view;
-        $c->log->debug("C::V::Email::Template uses Catalysts default view $view for rendering.") if $c->debug;;
+        $c->log->debug(
+"C::V::Email::Template uses Catalysts default view $view for rendering."
+        ) if $c->debug;
     }
 
     # validate the per template view
     $self->_validate_view($view);
-    
+
     # prefix with template_prefix if configured
-    my $template = $template_prefix ne '' ? join('/', $template_prefix, $attrs->{template}) : $attrs->{template};
-   
+    my $template =
+      $template_prefix ne ''
+      ? join( '/', $template_prefix, $attrs->{template} )
+      : $attrs->{template};
+
     # setup the attributes (merge with defaults)
-    my $e_m_attrs = $self->setup_attributes($c, $attrs);
+    my $e_m_attrs = $self->SUPER::setup_attributes( $c, $attrs );
 
     # render the email part
-    my $output = $view->render( $c, $template, { 
-        content_type    => $e_m_attrs->{content_type},
-        stash_key       => $self->{stash_key},
-        %{$c->stash},
-    });
-    
+    my $output = $view->render(
+        $c,
+        $template,
+        {
+            content_type => $e_m_attrs->{content_type},
+            stash_key    => $self->stash_key,
+            %{$c->stash},
+        }
+    );
+    warn "Email output: $output";
     if ( ref $output ) {
         croak $output->can('as_string') ? $output->as_string : $output;
     }
@@ -204,57 +241,56 @@ L<Email::Send>.
 
 =cut
 
-sub process {
-    my ( $self, $c, @args ) = @_;
+around 'process' => sub {
+    my ( $orig, $self, $c, @args ) = @_;
+    my $stash_key = $self->stash_key;
+    return $self->$orig( $c, @args )
+      unless $c->stash->{$stash_key}->{template}
+          or $c->stash->{$stash_key}->{templates};
+    warn "Stash: " . $stash_key;
 
-    # don't validate template_prefix
-
-    # the default view is validated if used
-
-    # the content type should be validated by Email::MIME::Creator
-    
-    my $stash_key = $self->{stash_key};
-
-    # Go upstream if we don't have a template
-    $self->next::method($c, @args)
-        unless $c->stash->{$stash_key}->{template}
-            or $c->stash->{$stash_key}->{templates};
-    
-    # this array holds the Email::MIME objects
     # in case of the simple api only one
-    my @parts = (); 
+    my @parts = ();
 
     # now find out if the single or multipart api was used
     # prefer the multipart one
-    
+
     # multipart api
-    if ($c->stash->{$stash_key}->{templates}
+    if (   $c->stash->{$stash_key}->{templates}
         && ref $c->stash->{$stash_key}->{templates} eq 'ARRAY'
-        && ref $c->stash->{$stash_key}->{templates}[0] eq 'HASH') {
+        && ref $c->stash->{$stash_key}->{templates}[0] eq 'HASH' )
+    {
+
         # loop through all parts of the mail
-        foreach my $part (@{$c->stash->{$stash_key}->{templates}}) {
-            push @parts, $self->generate_part($c, {
-                view            => $part->{view},
-                template        => $part->{template},
-                content_type    => $part->{content_type},
-                charset         => $part->{charset},
-            });
+        foreach my $part ( @{ $c->stash->{$stash_key}->{templates} } ) {
+            push @parts,
+              $self->generate_part(
+                $c,
+                {
+                    view         => $part->{view},
+                    template     => $part->{template},
+                    content_type => $part->{content_type},
+                    charset      => $part->{charset},
+                }
+              );
         }
     }
+
     # single part api
-    elsif($c->stash->{$stash_key}->{template}) {
-        push @parts, $self->generate_part($c, {
-            template    => $c->stash->{$stash_key}->{template},
-        });
+    elsif ( $c->stash->{$stash_key}->{template} ) {
+        push @parts,
+          $self->generate_part( $c,
+            { template => $c->stash->{$stash_key}->{template}, } );
     }
-    
+
     delete $c->stash->{$stash_key}->{body};
     $c->stash->{$stash_key}->{parts} ||= [];
-    push @{$c->stash->{$stash_key}->{parts}}, @parts;
+    push @{ $c->stash->{$stash_key}->{parts} }, @parts;
+    
+	warn "Stash: " . Dumper $c->stash;
+    return $self->$orig($c);
 
-    # Let C::V::Email do the actual sending.  We just assemble the tasty bits.
-    return $self->next::method($c);
-}
+};
 
 =back
 

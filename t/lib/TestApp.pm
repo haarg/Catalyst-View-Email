@@ -1,7 +1,7 @@
 package # Hide from PAUSE
     TestApp;
 
-use Catalyst;
+use Catalyst qw/ -Debug /;
 use FindBin;
 
 TestApp->config(
@@ -17,6 +17,7 @@ TestApp->config(
         sender => {
             mailer => 'Test',
         },
+		content_type => 'text/html',
         default => {
             view => 'TT',
         },
