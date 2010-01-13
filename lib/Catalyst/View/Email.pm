@@ -8,7 +8,7 @@ use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.13.01';
+our $VERSION = '0.14';
 
 has 'mailer' => (
     is      => 'rw',
