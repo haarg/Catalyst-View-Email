@@ -6,7 +6,7 @@ use Scalar::Util qw/ blessed /;
 use Data::Dumper;
 extends 'Catalyst::View::Email';
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 =head1 NAME
 
