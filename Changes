@@ -1,5 +1,11 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.17    2010-01-14
+        - fixed MANIFEST
+
+0.16    2010-01-12
+        - Fixed a Makefile.PL issue
+
 0.15    2010-01-12
         - Fixed teeny version issue with Email::Sender::Simple
 
