@@ -16,19 +16,16 @@ if ( $@ ) {
 use_ok('Catalyst::Test', 'TestApp');
 
 TestApp->config->{default_view} = 'Mason';
-use Data::Dumper;
 my $response;
 my $time = time;
 ok( ( $response = request("/mason_email?time=$time"))->is_success,
     'request ok' );
 like( $response->content, qr/Mason Email Ok/, 'controller says ok' );
 my @emails = Email::Sender::Simple->default_transport->deliveries;
-#warn "Email: " . Dumper @emails;
 cmp_ok(@emails, '==', 1, 'got emails');
 isa_ok( $emails[0]->{'email'}, 'Email::Abstract', 'email is ok' );
 my @parts = $emails[0]->{'email'}[0]->parts;
 cmp_ok(@parts, '==', 2, 'got parts');
-#warn "Parts: " . Dumper @parts;
 is($parts[0]->content_type, 'text/plain', 'text/plain ok');
 like($parts[0]->body, qr/test-email\@example.com on $time/, 'got content back');
 is($parts[1]->content_type, 'text/html', 'text/html ok');

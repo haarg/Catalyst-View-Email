@@ -6,7 +6,6 @@ use Test::More;
 
 use Email::Sender::Simple;
 use FindBin;
-use Data::Dumper;
 use lib "$FindBin::Bin/lib";
 
 eval "use Catalyst::View::TT";

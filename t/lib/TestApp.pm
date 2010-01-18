@@ -1,7 +1,7 @@
 package # Hide from PAUSE
     TestApp;
 
-use Catalyst qw/ -Debug /;
+use Catalyst;
 use FindBin;
 
 TestApp->config(
