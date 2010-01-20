@@ -6,15 +6,16 @@ use Carp;
 use Encode qw(encode decode);
 use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
+use Email::Sender::Transport;
 extends 'Catalyst::View';
 
 our $VERSION = '0.19';
 
-has 'mailer' => (
+has 'transport' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { "sendmail" }
+    default => sub { }
 );
 
 has 'stash_key' => (
@@ -35,13 +36,20 @@ has 'sender' => (
     is      => 'rw',
     isa     => 'HashRef',
     lazy    => 1,
-    default => sub { { mailer => shift->mailer } }
+    default => sub { { mailer => shift->transport } }
 );
 
 has 'content_type' => (
     is      => 'rw',
 	isa     => 'Str',
 	default => sub { shift->default->{content_type} },
+	lazy    => 1,
+);
+
+has "_transport" => (
+    is      => 'rw',
+	isa     => 'Str',
+	default => sub {}
 	lazy    => 1,
 );
 
@@ -178,7 +186,7 @@ favourite template engine to render the mail body.
 
 =item new
 
-Validates the base config and creates the L<Email::Send> object for later use
+Validates the base config and creates the L<Email::Sender::Simple> object for later use
 by process.
 
 =cut
