@@ -6,16 +6,22 @@ use Carp;
 use Encode qw(encode decode);
 use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
-use Email::Sender::Transport;
 extends 'Catalyst::View';
 
 our $VERSION = '0.19';
 
-has 'transport' => (
+has 'mailer' => (
     is      => 'rw',
     isa     => 'Str',
     lazy    => 1,
-    default => sub { }
+    default => sub { "sendmail" }
+);
+
+has '_mailer_obj' => (
+    is      => 'rw',
+    isa     => 'Email::Sender::Transport',
+    lazy    => 1,
+    builder => '_build_mailer_obj',
 );
 
 has 'stash_key' => (
@@ -36,7 +42,7 @@ has 'sender' => (
     is      => 'rw',
     isa     => 'HashRef',
     lazy    => 1,
-    default => sub { { mailer => shift->transport } }
+    default => sub { { mailer => shift->mailer } }
 );
 
 has 'content_type' => (
@@ -46,16 +52,13 @@ has 'content_type' => (
 	lazy    => 1,
 );
 
-has "_transport" => (
-    is      => 'rw',
-	isa     => 'Str',
-	default => sub {}
-	lazy    => 1,
-);
-
 =head1 NAME
 
 Catalyst::View::Email - Send Email from Catalyst
+
+=head1 VERSION
+
+version 0.19
 
 =head1 SYNOPSIS
 
@@ -93,10 +96,12 @@ In your app configuration:
             # Setup how to send the email
             # all those options are passed directly to Email::Send
             sender => {
+                # if mailer doesn't start with Email::Sender::Transport::,
+                # then this is prepended.
                 mailer => 'SMTP',
                 # mailer_args is passed directly into Email::Send 
                 mailer_args => {
-                    Host     => 'smtp.example.com', # defaults to localhost
+                    host     => 'smtp.example.com', # defaults to localhost
                     username => 'username',
                     password => 'password',
             }
@@ -106,7 +111,7 @@ In your app configuration:
 
 =head1 NOTE ON SMTP
 
-If you use SMTP and don't specify Host, it will default to localhost and
+If you use SMTP and don't specify host, it will default to localhost and
 attempt delivery. This often means an email will sit in a queue and
 not be delivered.
 
@@ -186,7 +191,7 @@ favourite template engine to render the mail body.
 
 =item new
 
-Validates the base config and creates the L<Email::Sender::Simple> object for later use
+Validates the base config and creates the L<Email::Send> object for later use
 by process.
 
 =cut
@@ -198,6 +203,20 @@ sub BUILD {
     croak "$self stash_key isn't defined!"
       if ( $stash_key eq '' );
 
+}
+
+sub _build_mailer_obj {
+  my ($self) = @_;
+  my $transport_class = ucfirst $self->sender->{mailer};
+
+  # borrowed from Email::Sender::Simple -- apeiron, 2010-01-26 
+  if ($transport_class !~ /^Email::Sender::Transport::/) {
+    $transport_class = "Email::Sender::Transport::$transport_class";
+  }
+
+  Class::MOP::load_class($transport_class);
+
+  return $transport_class->new($self->sender->{mailer_args} || {});
 }
 
 =item process($c)
@@ -213,7 +232,7 @@ sub process {
     my ( $self, $c ) = @_;
 
     croak "Unable to send mail, bad mail configuration"
-      unless $self->mailer;
+      unless $self->sender->{mailer};
 
     my $email = $c->stash->{ $self->stash_key };
     croak "Can't send email without a valid email structure"
@@ -267,7 +286,7 @@ sub process {
     my $message = $self->generate_message( $c, \%mime );
 
     if ($message) {
-        my $return = sendmail( $message, { transport => $self->mailer } );
+        my $return = sendmail( $message, { transport => $self->_mailer_obj } );
 
         # return is a Return::Value object, so this will stringify as the error
         # in the case of a failure.
@@ -346,6 +365,7 @@ sub generate_message {
 
 =back
 
+
 =head1 TROUBLESHOOTING
 
 As with most things computer related, things break.  Email even more so.  
@@ -393,6 +413,8 @@ Roman Filippov
 Lance Brown <lance@bearcircle.net>
 
 Devin Austin <dhoss@cpan.org>
+
+Chris Nehren <apeiron@cpan.org>
 
 =head1 COPYRIGHT
 
