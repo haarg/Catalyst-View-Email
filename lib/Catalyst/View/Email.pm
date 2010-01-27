@@ -4,11 +4,11 @@ use Moose;
 use Carp;
 
 use Encode qw(encode decode);
-use Email::Sender::Simple qw/ sendmail /;
+use Email::Sender::Simpleer::Simple qw/ sendmail /;
 use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.19';
+our $VERSION = '0.21';
 
 has 'mailer' => (
     is      => 'rw',
@@ -19,7 +19,7 @@ has 'mailer' => (
 
 has '_mailer_obj' => (
     is      => 'rw',
-    isa     => 'Email::Sender::Transport',
+    isa     => 'Email::Sender::Simpleer::Transport',
     lazy    => 1,
     builder => '_build_mailer_obj',
 );
@@ -94,12 +94,12 @@ In your app configuration:
                 charset => 'utf-8'
             },
             # Setup how to send the email
-            # all those options are passed directly to Email::Send
+            # all those options are passed directly to Email::Sender::Simple
             sender => {
-                # if mailer doesn't start with Email::Sender::Transport::,
+                # if mailer doesn't start with Email::Sender::Simpleer::Transport::,
                 # then this is prepended.
                 mailer => 'SMTP',
-                # mailer_args is passed directly into Email::Send 
+                # mailer_args is passed directly into Email::Sender::Simple 
                 mailer_args => {
                     host     => 'smtp.example.com', # defaults to localhost
                     username => 'username',
@@ -191,7 +191,7 @@ favourite template engine to render the mail body.
 
 =item new
 
-Validates the base config and creates the L<Email::Send> object for later use
+Validates the base config and creates the L<Email::Sender::Simple> object for later use
 by process.
 
 =cut
@@ -209,9 +209,9 @@ sub _build_mailer_obj {
   my ($self) = @_;
   my $transport_class = ucfirst $self->sender->{mailer};
 
-  # borrowed from Email::Sender::Simple -- apeiron, 2010-01-26 
-  if ($transport_class !~ /^Email::Sender::Transport::/) {
-    $transport_class = "Email::Sender::Transport::$transport_class";
+  # borrowed from Email::Sender::Simpleer::Simple -- apeiron, 2010-01-26 
+  if ($transport_class !~ /^Email::Sender::Simpleer::Transport::/) {
+    $transport_class = "Email::Sender::Simpleer::Transport::$transport_class";
   }
 
   Class::MOP::load_class($transport_class);
@@ -223,7 +223,7 @@ sub _build_mailer_obj {
 
 The process method does the actual processing when the view is dispatched to.
 
-This method sets up the email parts and hands off to L<Email::Send> to handle
+This method sets up the email parts and hands off to L<Email::Sender::Simple> to handle
 the actual email delivery.
 
 =cut
@@ -371,7 +371,7 @@ sub generate_message {
 As with most things computer related, things break.  Email even more so.  
 Typically any errors are going to come from using SMTP as your sending method,
 which means that if you are having trouble the first place to look is at
-L<Email::Send::SMTP>.  This module is just a wrapper for L<Email::Send>,
+L<Email::Sender::Simple::SMTP>.  This module is just a wrapper for L<Email::Sender::Simple>,
 so if you get an error on sending, it is likely from there anyway.
 
 If you are using SMTP and have troubles sending, whether it is authentication
