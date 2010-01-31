@@ -57,10 +57,6 @@ has 'content_type' => (
 
 Catalyst::View::Email - Send Email from Catalyst
 
-=head1 VERSION
-
-version 0.19
-
 =head1 SYNOPSIS
 
 This module sends out emails from a stash key specified in the
