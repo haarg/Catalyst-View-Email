@@ -1,5 +1,17 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.23  2010-01-30
+        -  removed Email::Send::Test from t/lib/* views 
+
+0.22    2010-01-28
+        - small fixes, version bumpage etc
+
+0.21_01 2010-01-27
+        - dev release to test recent fixes
+
+0.21    2010-01-27
+        - provided a sane MANIFEST.SKIP for dzil
+
 0.20    2010-01-26
         - fix transport instantiation thanks to Chris Nehren <apeiron@cpan.org>
 
