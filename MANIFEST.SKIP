@@ -1,3 +1,7 @@
 MANIFEST.SKIP
 dist.ini
 ^\.
+.svn/
+.git/
+.swp$
+.obj
