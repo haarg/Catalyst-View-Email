@@ -1,7 +1,9 @@
 Revision history for Perl extension Catalyst::View::Email.
 
-0.23  2010-01-30
-        -  removed Email::Send::Test from t/lib/* views
+        - converted to Module::Install
+
+0.23    2010-01-30
+        - removed Email::Send::Test from t/lib/* views
 
 0.22    2010-01-28
         - small fixes, version bumpage etc
