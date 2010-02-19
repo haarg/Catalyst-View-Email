@@ -1,6 +1,11 @@
 use strict;
 use warnings;
 use Test::More;
+## skip unless MASON_TEST specified
+
+## ...
+
+##
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 use FindBin;
 use lib "$FindBin::Bin/lib";
