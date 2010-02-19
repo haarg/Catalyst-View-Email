@@ -145,7 +145,7 @@ TROUBLESHOOTING
     As with most things computer related, things break. Email even more so.
     Typically any errors are going to come from using SMTP as your sending
     method, which means that if you are having trouble the first place to
-    look is at Email::Sender::Simple::SMTP. This module is just a wrapper
+    look is at Email::Sender::Transport::SMTP. This module is just a wrapper
     for Email::Sender::Simple, so if you get an error on sending, it is
     likely from there anyway.
 
