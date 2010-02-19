@@ -8,7 +8,7 @@ use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.24';
+our $VERSION = '0.25_01';
 $VERSION = eval $VERSION;
 
 has 'mailer' => (
@@ -206,7 +206,7 @@ sub _build_mailer_obj {
     my ($self) = @_;
     my $transport_class = ucfirst $self->sender->{mailer};
 
-    # borrowed from Email::Sender::Simpleer::Simple -- apeiron, 2010-01-26
+    # borrowed from Email::Sender::Simple -- apeiron, 2010-01-26
     if ( $transport_class !~ /^Email::Sender::Transport::/ ) {
         $transport_class = "Email::Sender::Transport::$transport_class";
     }
@@ -366,7 +366,7 @@ sub generate_message {
 As with most things computer related, things break.  Email even more so.  
 Typically any errors are going to come from using SMTP as your sending method,
 which means that if you are having trouble the first place to look is at
-L<Email::Sender::Simple::SMTP>.  This module is just a wrapper for L<Email::Sender::Simple>,
+L<Email::Sender::Transport::SMTP>.  This module is just a wrapper for L<Email::Sender::Simple>,
 so if you get an error on sending, it is likely from there anyway.
 
 If you are using SMTP and have troubles sending, whether it is authentication
