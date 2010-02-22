@@ -1,9 +1,6 @@
 use strict;
 use warnings;
 use Test::More;
-## skip unless MASON_TEST specified
-
-## ...
 
 ##
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }

@@ -15,6 +15,7 @@ requires 'parent'                => '0.223';
 requires 'Email::Sender::Simple' => '0.100110';
 requires 'Email::MIME'           => '1.859';
 requires 'Email::MIME::Creator'  => '1.455';
+requires 'Test::More'            => '0.88';
 
 feature 'Template Toolkit support',
     -default                => 0,

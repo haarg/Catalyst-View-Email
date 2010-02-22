@@ -11,7 +11,6 @@ use lib "$FindBin::Bin/lib";
 eval "use Catalyst::View::TT";
 if ( $@ ) {
     plan skip_all => 'Catalyst::View::TT required for Template tests';
-    exit;
 }
 
 use_ok('Catalyst::Test', 'TestApp');
