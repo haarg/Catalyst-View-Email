@@ -25,9 +25,6 @@ t/05template.t
 t/06config.t
 t/07mason.t
 t/lib/TestApp.pm
-t/lib/TestApp/cache/obj/.__obj_create_marker
-t/lib/TestApp/cache/obj/99865843/text_html/test.m.obj
-t/lib/TestApp/cache/obj/99865843/text_plain/test.m.obj
 t/lib/TestApp/Controller/Root.pm
 t/lib/TestApp/View/Email.pm
 t/lib/TestApp/View/Email/AppConfig.pm

@@ -25,10 +25,10 @@ provides:
     file: lib/Catalyst/Helper/View/Email/Template.pm
   Catalyst::View::Email:
     file: lib/Catalyst/View/Email.pm
-    version: 0.25_02
+    version: 0.26_01
   Catalyst::View::Email::Template:
     file: lib/Catalyst/View/Email/Template.pm
-    version: 0.25_02
+    version: 0.26_01
 requires:
   Authen::SASL: 2.13
   Catalyst: 5.7
@@ -44,4 +44,4 @@ resources:
   MailingList: http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/catalyst
   license: http://dev.perl.org/licenses/
   repository: http://dev.catalyst.perl.org/repos/Catalyst/Catalyst-View-Email/
-version: 0.25_02
+version: 0.26_01
