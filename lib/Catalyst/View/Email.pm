@@ -8,7 +8,7 @@ use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.25_02';
+our $VERSION = '0.26_01';
 $VERSION = eval $VERSION;
 
 has 'mailer' => (
@@ -98,7 +98,7 @@ In your app configuration:
                 mailer => 'SMTP',
                 # mailer_args is passed directly into Email::Sender::Simple 
                 mailer_args => {
-                    host     => 'smtp.example.com', # defaults to localhost
+                    Host     => 'smtp.example.com', # defaults to localhost
                     username => 'username',
                     password => 'password',
             }
