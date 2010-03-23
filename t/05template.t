@@ -8,11 +8,6 @@ use Email::Sender::Simple;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 
-eval "use Catalyst::View::TT";
-if ( $@ ) {
-    plan skip_all => 'Catalyst::View::TT required for Template tests';
-}
-
 use_ok('Catalyst::Test', 'TestApp');
 
 my $response;

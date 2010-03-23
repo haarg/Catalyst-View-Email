@@ -1,5 +1,10 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.26    2010-03-23
+        - made ::View::TT and ::View::Mason hard deps
+        - adjusted tests to reflect the aforementioned
+        - patches welcome
+
 0.25_02 2010-02-21
         - cleaned up tests
         - made Test::More 0.88 a prereq
