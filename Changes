@@ -1,5 +1,8 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.27    2010-05-14
+        - Added  version numbers to Helpers
+
 0.27    2010-03-23
         - made ::View::TT and ::View::Mason hard deps
         - adjusted tests to reflect the aforementioned

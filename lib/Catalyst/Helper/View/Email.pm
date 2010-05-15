@@ -1,5 +1,8 @@
 package Catalyst::Helper::View::Email;
 
+our $VERSION = '0.27';
+$VERSION = eval $VERSION;
+
 use strict;
 
 =head1 NAME
