@@ -4,7 +4,7 @@ use warnings;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 use Test::More;
 use Test::Requires {
-    'Template' => '0.31',
+    'Catalyst::View::Template' => '0.31',
 };
 use Email::Sender::Simple;
 use FindBin;
