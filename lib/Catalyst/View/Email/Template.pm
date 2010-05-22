@@ -5,7 +5,7 @@ use Carp;
 use Scalar::Util qw/ blessed /;
 extends 'Catalyst::View::Email';
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 $VERSION = eval $VERSION;
 =head1 NAME
 
