@@ -1,5 +1,9 @@
 Revision history for Perl extension Catalyst::View::Email.
 
+0.29    2010-05-21
+        - Using Test::Requires for Mason and Template::Toolkit dependency check
+        - Removed Template::Toolkit and Mason as prereqs
+
 0.28    2010-05-14
         - Added  version numbers to Helpers
 
