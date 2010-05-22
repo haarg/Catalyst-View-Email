@@ -1,6 +1,9 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Requires {
+    'Catalyst::View::Mason' => '0.18',
+};
 
 ##
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
@@ -8,12 +11,6 @@ use FindBin;
 use lib "$FindBin::Bin/lib";
 
 use Email::Sender::Simple;
-
-eval "use Catalyst::View::Mason";
-if ( $@ ) {
-    plan skip_all => 'Catalyst::View::Mason required for Mason tests';
-    exit;
-}
 
 use_ok('Catalyst::Test', 'TestApp');
 

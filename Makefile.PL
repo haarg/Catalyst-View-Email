@@ -1,4 +1,5 @@
 use inc::Module::Install 0.91;
+test_requires 'Test::Requires';
 
 name 'Catalyst-View-Email';
 all_from 'lib/Catalyst/View/Email.pm';
@@ -16,9 +17,8 @@ requires 'Email::Sender::Simple' => '0.100110';
 requires 'Email::MIME'           => '1.859';
 requires 'Email::MIME::Creator'  => '1.455';
 requires 'Test::More'            => '0.88';
-## patches welcome if you don't want these installed.  I'm not maintaining a dist with optional deps.
-requires 'Catalyst::View::TT'    => '0.31';
-requires 'Catalyst::View::Mason' => '0.18';
+#requires 'Catalyst::View::TT'    => '0.31';
+#requires 'Catalyst::View::Mason' => '0.18';
 
 # Rebuild README for maintainers
 if ($Module::Install::AUTHOR) {
