@@ -1,7 +1,7 @@
 package Catalyst::Helper::View::Email::Template;
 
 use strict;
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 $VERSION = eval $VERSION;
 =head1 NAME
 
