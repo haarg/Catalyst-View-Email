@@ -2,6 +2,9 @@ use strict;
 use warnings;
 BEGIN { $ENV{EMAIL_SENDER_TRANSPORT} = 'Test' }
 
+use Test::Requires {
+    'Catalyst::View::TT' => '0.31',
+};
 use Test::More; 
 use Email::Sender::Simple;
 use FindBin;
