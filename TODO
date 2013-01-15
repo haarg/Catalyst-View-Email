@@ -1,2 +1,0 @@
-switch to Test::Requires so we can get rid of the Mason dep
-better docs regarding using sendmail as default?

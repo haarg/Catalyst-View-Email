@@ -8,7 +8,7 @@ use Email::Sender::Simple qw/ sendmail /;
 use Email::MIME::Creator;
 extends 'Catalyst::View';
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 $VERSION = eval $VERSION;
 
 has 'mailer' => (
@@ -280,6 +280,9 @@ sub process {
         $mime{attributes}->{charset} = $self->{default}->{charset};
     }
 
+    $mime{attributes}->{encoding} = $email->{encoding} 
+        if $email->{encoding};
+
     my $message = $self->generate_message( $c, \%mime );
 
     if ($message) {
@@ -307,7 +310,8 @@ sub setup_attributes {
     my ( $self, $c, $attrs ) = @_;
 
     my $default_content_type = $self->default->{content_type};
-    my $default_charset      = $self->default->{charset};
+    my $default_charset      = $self->default->{charset}; 
+    my $default_encoding     = $self->default->{encoding};
 
     my $e_m_attrs = {};
 
@@ -337,6 +341,24 @@ sub setup_attributes {
     elsif ( defined $default_charset && $default_charset ne '' ) {
         $e_m_attrs->{charset} = $default_charset;
     }
+
+    if ( exists $attrs->{encoding}
+         && defined $attrs->{encoding}
+         && $attrs->{encoding} ne '' )
+    {
+        $c->log->debug(
+        'C::V::Email uses specified encoding '
+        . $attrs->{encoding}
+        . '.' )
+         if $c->debug;
+         $e_m_attrs->{encoding} = $attrs->{encoding};
+    }
+     elsif ( defined $default_encoding && $default_encoding ne '' ) {
+         $c->log->debug(
+         "C::V::Email uses default encoding $default_encoding.")
+         if $c->debug;
+         $e_m_attrs->{encoding} = $default_encoding;
+     }
 
     return $e_m_attrs;
 }

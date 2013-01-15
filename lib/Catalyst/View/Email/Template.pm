@@ -5,7 +5,7 @@ use Carp;
 use Scalar::Util qw/ blessed /;
 extends 'Catalyst::View::Email';
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 $VERSION = eval $VERSION;
 =head1 NAME
 
@@ -65,22 +65,25 @@ the template instead of the body and forwarding to your Email::Template view:
     }
 
 Alternatively if you want more control over your templates you can use the following idiom
-to override the defaults:
+to override the defaults. If charset and encoding given, the body become properly encoded.
 
     templates => [
         {
             template        => 'email/test.html.tt',
             content_type    => 'text/html',
             charset         => 'utf-8',
+            encoding        => 'quoted-printable',
             view            => 'TT', 
         },
         {
             template        => 'email/test.plain.mason',
             content_type    => 'text/plain',
             charset         => 'utf-8',
+            encoding        => 'quoted-printable',
             view            => 'Mason', 
         }
     ]
+
 
 
 =head1 HANDLING ERRORS
@@ -167,7 +170,7 @@ sub generate_part {
     my $template_prefix      = $self->template_prefix;
     my $default_view         = $self->default->{view};
     my $default_content_type = $self->default->{content_type};
-    my $default_charset      = $self->default->{charset};
+    my $default_charset      = $self->default->{charset}; 
 
     my $view;
 
@@ -224,10 +227,23 @@ sub generate_part {
         croak $output->can('as_string') ? $output->as_string : $output;
     }
 
-    return Email::MIME->create(
-        attributes => $e_m_attrs,
-        body       => $output,
-    );
+    if ( exists $e_m_attrs->{encoding} 
+        && defined $e_m_attrs->{encoding} 
+        && exists $e_m_attrs->{charset} 
+        && defined $e_m_attrs->{charset} ) {
+
+        return Email::MIME->create(
+            attributes => $e_m_attrs,
+            body_str   => $output,
+        );
+
+    } else {
+
+        return Email::MIME->create(
+            attributes => $e_m_attrs,
+            body       => $output,
+        );
+    }
 }
 
 =item process
@@ -268,7 +284,8 @@ around 'process' => sub {
                     template     => $part->{template},
                     content_type => $part->{content_type},
                     charset      => $part->{charset},
-                }
+                    encoding     => $part->{encoding},
+                 }
               );
         }
     }
